@@ -1,0 +1,100 @@
+# Tomatick
+
+A macOS **menu bar** timer, stopwatch, alarm and pomodoro — all in one icon,
+with a timestamped history of everything you run.
+
+Built with [`rumps`](https://github.com/jaredks/rumps) (which wraps
+`NSStatusItem`/`NSMenu`) and PyObjC. **No Xcode and no Apple Developer Program
+are required** to build or run it for yourself.
+
+## Features
+
+- **Timer** — natural-language durations (`25m`, `1h30m`, `90s`, `2:30`), with a
+  live `M:SS` countdown in the menu bar. Pause / Reset / Stop.
+- **Stopwatch** — counts up, with optional laps. Pause / Reset / Stop.
+- **Pomodoro** — 25/5/15 by default, auto-advancing phases (🍅 work, ☕ break),
+  long break after every 4th work cycle. Pause / Skip phase / Stop.
+- **Alarms** — one-shot (a specific date + time) and recurring (a time of day on
+  chosen weekdays). Rings with a looping sound + notification until dismissed,
+  with Snooze (9 min default).
+- **Multiple at once** — run several sessions together; the menu bar shows your
+  "primary" one live, and every active session is listed in the menu with its
+  own count. **Pin** any session to make it the primary display.
+- **History** — every event (started / paused / completed / phase change / alarm
+  fired …) is timestamped into SQLite. See recent events in the menu and
+  **Export** the full log to CSV or JSON.
+- **Settings** — edit pomodoro durations, default sound, and toggle **Launch at
+  login** (via a per-user LaunchAgent — no dev program needed). Native PyObjC
+  windows, with simple dialog fallbacks if AppKit ever misbehaves.
+
+Everything is driven from the menu bar icon's menu: start a session → it appears
+in the menu → click its item to pause/stop it (or dismiss a ringing alarm).
+
+## Run it (development)
+
+Requires **Python 3.11 or 3.12** (rumps does not yet support 3.13).
+
+```bash
+python3.12 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+python -m tomatick
+```
+
+A stopwatch icon appears in your menu bar. Click it to open the menu.
+
+> Notifications appear reliably only from the packaged `.app` (they need a
+> bundle id). From the dev script you'll still get the sounds and menu updates.
+
+## Run the tests
+
+The timing/scheduling/history logic has no macOS dependencies, so the tests run
+anywhere:
+
+```bash
+pip install pytest
+python -m pytest
+```
+
+## Build a standalone app
+
+```bash
+pip install py2app
+python setup.py py2app
+open dist/Tomatick.app
+```
+
+`LSUIElement` keeps it out of the Dock — it's a pure menu bar app. The bundle is
+unsigned; on first launch, right-click the app in Finder → **Open** to get past
+Gatekeeper. To start it automatically at login, use **Settings → Launch at
+login** inside the app (or drag the app into System Settings → General → Login
+Items).
+
+## Where data lives
+
+```
+~/Library/Application Support/Tomatick/
+├── config.json     # pomodoro settings, alarms, sound, launch-at-login
+└── history.db      # SQLite event history
+```
+
+## Icons
+
+Menu bar icons are from Flaticon's clock set —
+<https://www.flaticon.com/free-icons/clock>. The free license requires
+attribution (credited here and in the app's About box). See
+[`tomatick/assets/README.md`](tomatick/assets/README.md) for how to add them;
+until they're present the app falls back to emoji in the menu bar.
+
+## Project layout
+
+```
+tomatick/
+├── sessions.py      # Timer / Stopwatch / Pomodoro (pure logic)
+├── alarms.py        # Alarm model + scheduling (pure logic)
+├── history.py       # SQLite history store
+├── settings.py      # config.json load/save
+├── notifications.py # banners + looping sound
+├── launch_agent.py  # launch-at-login LaunchAgent
+├── app.py           # rumps app: menu, 1s tick, wiring
+└── ui/              # native PyObjC windows + rumps fallbacks
+```

@@ -1,0 +1,6 @@
+# Runtime
+rumps>=0.4.0          # menu bar app (pulls in pyobjc-framework-Cocoa)
+
+# Dev / packaging (macOS)
+py2app>=0.28          # build Tomatick.app
+pytest>=7.0           # run the logic tests

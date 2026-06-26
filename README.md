@@ -35,6 +35,27 @@ are required** to build or run it for yourself.
 Everything is driven from the menu bar icon's menu: start a session → it appears
 in the menu → click its item to pause/stop it (or dismiss a ringing alarm).
 
+## Download & install
+
+Grab the latest `.dmg` from the
+[**Releases**](https://github.com/MichalAFerber/tomatick/releases) page.
+
+> **Apple Silicon only** (M1/M2/M3/M4). The build bundles an arm64 Python, so it
+> won't run on Intel Macs.
+
+1. Open the `.dmg` and drag **Tomatick** onto the **Applications** folder.
+2. The bundle is unsigned, so on **first launch** right-click **Tomatick** in
+   Applications → **Open** → **Open**. (A plain double-click is blocked the first
+   time.) If macOS still refuses, run once in Terminal:
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/Tomatick.app
+   ```
+
+Tomatick is a **menu bar** app — no Dock icon, no window. Look for the stopwatch
+icon in the top-right menu bar. To start it at login, use the icon's menu →
+**Settings → Launch at login**.
+
 ## Run it (development)
 
 Requires **Python 3.11 or 3.12** (rumps does not yet support 3.13).

@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Logic tests (Linux, Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # The platform-independent logic (sessions, alarms, history, settings)
+      # depends only on the standard library, so the tests need just pytest.
+      # The macOS-only runtime deps (rumps / pyobjc / py2app) are installed and
+      # exercised in the macos-smoke job below.
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Run tests
+        run: python -m pytest -q
+
+  macos-smoke:
+    name: Import smoke + tests (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install runtime + test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      # Verify rumps/PyObjC import and the full app module loads on macOS
+      # (does not start the run loop or create a status item).
+      - name: Import smoke test
+        run: python -c "import tomatick.app; print('tomatick.app imported OK')"
+
+      - name: Run tests
+        run: python -m pytest -q

@@ -1,5 +1,10 @@
 # Tomatick
 
+[![CI](https://github.com/MichalAFerber/tomatick/actions/workflows/ci.yml/badge.svg)](https://github.com/MichalAFerber/tomatick/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
+
 A macOS **menu bar** timer, stopwatch, alarm and pomodoro — all in one icon,
 with a timestamped history of everything you run.
 
@@ -48,7 +53,7 @@ A stopwatch icon appears in your menu bar. Click it to open the menu.
 ## Run the tests
 
 The timing/scheduling/history logic has no macOS dependencies, so the tests run
-anywhere:
+anywhere (this is what CI runs on Linux):
 
 ```bash
 pip install pytest
@@ -69,6 +74,16 @@ Gatekeeper. To start it automatically at login, use **Settings → Launch at
 login** inside the app (or drag the app into System Settings → General → Login
 Items).
 
+## Continuous integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push to
+`main` and on pull requests:
+
+- **Logic tests (Linux)** — the platform-independent suite on Python 3.11 and
+  3.12 (only `pytest` is needed; the macOS-only runtime deps are skipped here).
+- **Import smoke + tests (macOS)** — installs the full runtime (rumps/PyObjC),
+  confirms `tomatick.app` imports, and re-runs the suite.
+
 ## Where data lives
 
 ```
@@ -76,14 +91,6 @@ Items).
 ├── config.json     # pomodoro settings, alarms, sound, launch-at-login
 └── history.db      # SQLite event history
 ```
-
-## Icons
-
-Menu bar icons are from Flaticon's clock set —
-<https://www.flaticon.com/free-icons/clock>. The free license requires
-attribution (credited here and in the app's About box). See
-[`tomatick/assets/README.md`](tomatick/assets/README.md) for how to add them;
-until they're present the app falls back to emoji in the menu bar.
 
 ## Project layout
 
@@ -98,3 +105,13 @@ tomatick/
 ├── app.py           # rumps app: menu, 1s tick, wiring
 └── ui/              # native PyObjC windows + rumps fallbacks
 ```
+
+## License
+
+Released under the [MIT License](LICENSE) — © 2026 Michal Ferber.
+
+Menu bar icons are from Flaticon's clock set —
+<https://www.flaticon.com/free-icons/clock>. Flaticon's free license requires
+attribution (credited here and in the app's About box). See
+[`tomatick/assets/README.md`](tomatick/assets/README.md) for how to add them;
+until they're present the app falls back to emoji in the menu bar.

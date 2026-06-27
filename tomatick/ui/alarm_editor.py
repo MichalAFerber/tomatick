@@ -156,7 +156,23 @@ def _open_fallback(app: "TomatickApp") -> None:
 # ---------------------------------------------------------------------------
 # Native window: table list + Add / Edit / Delete
 # ---------------------------------------------------------------------------
+_ALARM_CONTROLLER = None  # PyObjC class; registered once per process
+
+
 def _open_native(app: "TomatickApp") -> None:
+    cls = _alarm_controller_class()
+    controller = cls.alloc().initWithApp_(app)
+    app._open_windows.append(controller)
+    controller.show()
+
+
+def _alarm_controller_class():
+    """Define the controller class once and cache it (see settings_window for
+    why: a PyObjC class name may only be registered once per process)."""
+    global _ALARM_CONTROLLER
+    if _ALARM_CONTROLLER is not None:
+        return _ALARM_CONTROLLER
+
     import AppKit
     import objc
     from Foundation import NSObject, NSMakeRect
@@ -249,6 +265,5 @@ def _open_native(app: "TomatickApp") -> None:
                 self._app.delete_alarm(alarm.id)
             self._reload()
 
-    controller = _AlarmController.alloc().initWithApp_(app)
-    app._open_windows.append(controller)
-    controller.show()
+    _ALARM_CONTROLLER = _AlarmController
+    return _ALARM_CONTROLLER

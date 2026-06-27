@@ -3,7 +3,7 @@
 # Build Tomatick, package a drag-to-Applications .dmg, and cut a GitHub release.
 #
 # Usage:
-#   ./scripts/release.sh            # version read from setup.py, tag v<version>
+#   ./scripts/release.sh            # version read from tomatick/__init__.py, tag v<version>
 #   ./scripts/release.sh --dry-run  # build + dmg only, skip the GitHub release
 #
 # Prereqs: a venv with deps installed (python3.12 -m venv venv && pip install -r
@@ -17,10 +17,10 @@ cd "$(dirname "$0")/.."   # repo root
 DRY_RUN=0
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
 
-# --- single source of truth: version from setup.py -------------------------
-VER=$(grep -E '"CFBundleShortVersionString"' setup.py | sed -E 's/.*"([0-9][^"]*)".*/\1/')
+# --- single source of truth: version from tomatick/__init__.py -------------
+VER=$(grep -E '^__version__' tomatick/__init__.py | sed -E 's/.*"([^"]+)".*/\1/')
 if [[ -z "$VER" ]]; then
-  echo "error: could not read CFBundleShortVersionString from setup.py" >&2
+  echo "error: could not read __version__ from tomatick/__init__.py" >&2
   exit 1
 fi
 TAG="v$VER"
@@ -39,7 +39,7 @@ fi
 
 # --- guard: release must not already exist ---------------------------------
 if [[ $DRY_RUN -eq 0 ]] && gh release view "$TAG" >/dev/null 2>&1; then
-  echo "error: release $TAG already exists. Bump the version in setup.py first." >&2
+  echo "error: release $TAG already exists. Bump the version in tomatick/__init__.py first." >&2
   exit 1
 fi
 

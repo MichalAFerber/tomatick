@@ -29,7 +29,18 @@ DEFAULTS: Dict[str, Any] = {
     "default_sound": "Glass",  # one of the built-in /System/Library/Sounds names
     "launch_at_login": False,
     "alarms": [],
-    "history_recent_count": 10,
+    # Quick-start timer presets: list of {"label", "seconds"}.
+    "presets": [
+        {"label": "Focus", "seconds": 1500},
+        {"label": "Quick break", "seconds": 300},
+    ],
+    # Focus / Do-Not-Disturb via macOS Shortcuts (run by name; "" = disabled).
+    "focus_shortcut_on": "",
+    "focus_shortcut_off": "",
+    "focus_during_work": True,
+    # Single global hotkey: action id + key-combo symbol string ("" = none).
+    "hotkey_action": "none",
+    "hotkey_key": "",
 }
 
 

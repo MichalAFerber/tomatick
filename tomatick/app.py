@@ -20,12 +20,12 @@ from pathlib import Path
 
 import rumps
 
-from . import launch_agent
+from . import __version__, focus, hotkey, keepawake, launch_agent
 from .alarms import Alarm, load_alarms
 from .history import History
 from .notifications import SoundPlayer, available_sounds, notify
-from .sessions import (DONE, PAUSED, RUNNING, Pomodoro, Stopwatch, Timer,
-                       parse_duration)
+from .sessions import (DONE, PAUSED, RUNNING, WORK, Pomodoro, Stopwatch, Timer,
+                       format_clock, parse_duration)
 from .settings import APP_NAME, Settings, support_dir
 from .ui import alarm_editor, settings_window
 
@@ -59,8 +59,13 @@ class TomatickApp(rumps.App):
 
         self._open_windows: list = []  # keep PyObjC window controllers alive
 
+        self.keep_awake = keepawake.KeepAwake()
+        self.hotkeys = hotkey.HotkeyManager(self._on_hotkey)
+        self._focus_active = False
+
         self.rebuild_menu()
         self._update_title()
+        self._configure_hotkey()
 
         self.timer = rumps.Timer(self.on_tick, 1)
         self.timer.start()
@@ -90,6 +95,13 @@ class TomatickApp(rumps.App):
             rumps.MenuItem("Pomodoro", callback=self.start_pomodoro),
             rumps.MenuItem("Alarm…", callback=self.open_alarms),
         ]
+        presets = self.settings.get("presets", [])
+        if presets:
+            start_children.append(None)
+            for p in presets:
+                title = f"{p['label']}  {format_clock(int(p['seconds']))}"
+                start_children.append(
+                    rumps.MenuItem(title, callback=lambda s, pp=p: self.start_preset(pp)))
         m.append([rumps.MenuItem("Start"), start_children])
         m.append(None)
 
@@ -102,7 +114,8 @@ class TomatickApp(rumps.App):
                 m.append([parent, self._session_submenu(sess)])
             for fa in self.firing_alarms:
                 alarm = fa["alarm"]
-                parent = rumps.MenuItem(f"🔔 {alarm.label or 'Alarm'} · ringing")
+                title = fa.get("title") or f"🔔 {alarm.label or 'Alarm'} · ringing"
+                parent = rumps.MenuItem(title)
                 children = [
                     rumps.MenuItem("Dismiss",
                                    callback=lambda s, a=alarm: self.dismiss_alarm(a)),
@@ -112,45 +125,15 @@ class TomatickApp(rumps.App):
                 m.append([parent, children])
             m.append(None)
 
-        # History --------------------------------------------------------
-        hist_children = []
-        recent = self.history.recent(self.settings.get("history_recent_count", 10))
-        if recent:
-            for row in recent:
-                ts = row["ts"].replace("T", " ")
-                name = row["label"] or row["kind"]
-                hist_children.append(
-                    rumps.MenuItem(f"{ts}  {name} · {row['action']}"))
-        else:
-            empty = rumps.MenuItem("(no events yet)")
-            hist_children.append(empty)
-        hist_children.append(None)
-        hist_children.append(rumps.MenuItem("Export…", callback=self.export_history))
-        hist_children.append(rumps.MenuItem("Clear history", callback=self.clear_history))
-        m.append([rumps.MenuItem("History"), hist_children])
-        m.append(None)
-
-        # Settings -------------------------------------------------------
-        launch_item = rumps.MenuItem("Launch at login", callback=self.toggle_launch)
-        launch_item.state = 1 if self.settings.launch_at_login else 0
-
-        sound_children = []
-        for s in self.available_sounds():
-            si = rumps.MenuItem(s, callback=self.set_sound)
-            si.state = 1 if s == self.settings.default_sound else 0
-            sound_children.append(si)
-
-        settings_children = [
-            rumps.MenuItem("Pomodoro…", callback=self.open_settings),
-            rumps.MenuItem("Alarms…", callback=self.open_alarms),
-            launch_item,
-            [rumps.MenuItem("Sound"), sound_children],
-        ]
-        m.append([rumps.MenuItem("Settings"), settings_children])
+        # Settings (history now lives in the Settings window's History tab) ---
+        m.append(rumps.MenuItem("Settings…", callback=self.open_settings))
+        keep_awake_item = rumps.MenuItem("Keep awake", callback=self.toggle_keep_awake)
+        keep_awake_item.state = 1 if self.keep_awake.active else 0
+        m.append(keep_awake_item)
         m.append(None)
 
         m.append(rumps.MenuItem("About", callback=self.about))
-        m.append(rumps.MenuItem("Quit", callback=rumps.quit_application))
+        m.append(rumps.MenuItem("Quit", callback=self.quit_app))
 
         self.menu.update(m)
 
@@ -204,15 +187,26 @@ class TomatickApp(rumps.App):
     def start_pomodoro(self, _):
         from .ui import widgets
         label = widgets.ask_text("Label (optional):", title="Pomodoro") or ""
+        self._start_pomodoro_session(label)
+
+    def _start_pomodoro_session(self, label=""):
         sess = Pomodoro(self.settings.pomodoro, label=label)
         self._add_session(sess)
         self.log("pomodoro", "started", label=label)
+
+    def start_preset(self, preset):
+        seconds = int(preset["seconds"])
+        label = preset.get("label", "")
+        sess = Timer(seconds, label=label)
+        self._add_session(sess)
+        self.log("timer", "started", label=label, duration_s=seconds)
 
     def _add_session(self, sess):
         self.sessions[sess.id] = sess
         self._pinned_id = sess.id  # newest becomes primary
         self.rebuild_menu()
         self._update_title()
+        self._sync_focus()
 
     # ------------------------------------------------------------ session actions
     def session_toggle(self, sess):
@@ -221,12 +215,14 @@ class TomatickApp(rumps.App):
             self.log(sess.kind, action, label=sess.label)
         self.rebuild_menu()
         self._update_title()
+        self._sync_focus()
 
     def session_reset(self, sess):
         sess.reset()
         self.log(sess.kind, "reset", label=sess.label)
         self.rebuild_menu()
         self._update_title()
+        self._sync_focus()
 
     def session_skip(self, sess):
         for ev in sess.skip_phase():
@@ -235,6 +231,7 @@ class TomatickApp(rumps.App):
         self._notify_phase(sess)
         self.rebuild_menu()
         self._update_title()
+        self._sync_focus()
 
     def session_lap(self, sess):
         elapsed = sess.lap()
@@ -255,6 +252,7 @@ class TomatickApp(rumps.App):
             self._pinned_id = next(reversed(self.sessions), None)
         self.rebuild_menu()
         self._update_title()
+        self._sync_focus()
 
     # ------------------------------------------------------------------- ticking
     def on_tick(self, _):
@@ -291,6 +289,7 @@ class TomatickApp(rumps.App):
         if structural_change:
             self.rebuild_menu()
         self._update_title()
+        self._sync_focus()
 
     def _check_alarms(self) -> bool:
         now = datetime.now()
@@ -355,8 +354,17 @@ class TomatickApp(rumps.App):
 
     # ---------------------------------------------------------------- notifying
     def _notify_complete(self, sess):
+        # Keep alerting (looping sound + a Dismiss entry) until acknowledged,
+        # the same way a fired alarm rings.
         notify("Timer done", subtitle=sess.label or "", message="Time's up!")
-        self.cue_player.play(self.settings.default_sound, loop=False)
+        sound = self.settings.default_sound
+        transient = Alarm(label=sess.label or "Timer", sound=sound)
+        transient.enabled = False
+        self.firing_alarms.append({
+            "alarm": transient,
+            "title": f"⏱ {sess.label or 'Timer'} · done",
+        })
+        self.alarm_player.play(sound, loop=True)
 
     def _notify_phase(self, sess):
         phase = sess.phase.replace("_", " ")
@@ -434,24 +442,71 @@ class TomatickApp(rumps.App):
             self.history.clear()
             self.rebuild_menu()
 
-    # ---------------------------------------------------------------- settings
-    def set_sound(self, sender):
-        self.settings.data["default_sound"] = sender.title
+    # ---------------------------------------------------------------- presets
+    def add_preset(self, preset):
+        self.settings.data.setdefault("presets", []).append(preset)
         self.settings.save()
-        self.cue_player.play(sender.title, loop=False)  # preview
         self.rebuild_menu()
 
-    def toggle_launch(self, sender):
-        new_value = not self.settings.launch_at_login
-        try:
-            launch_agent.set_enabled(new_value, app_path=self._bundle_path())
-        except Exception as exc:  # pragma: no cover
-            from .ui import widgets
-            widgets.confirm(f"Couldn't update launch-at-login: {exc}")
-            return
-        self.settings.data["launch_at_login"] = new_value
+    def update_preset(self, index, preset):
+        self.settings.data["presets"][index] = preset
         self.settings.save()
         self.rebuild_menu()
+
+    def delete_preset(self, index):
+        del self.settings.data["presets"][index]
+        self.settings.save()
+        self.rebuild_menu()
+
+    # ------------------------------------------------------------- keep awake
+    def toggle_keep_awake(self, sender=None):
+        active = self.keep_awake.toggle()
+        self.log("keepawake", "enabled" if active else "disabled")
+        self.rebuild_menu()
+
+    # ------------------------------------------------------- focus / shortcuts
+    def _sync_focus(self):
+        """Run the Focus on/off Shortcut as work-phase activity changes."""
+        if self.settings.get("focus_during_work", True):
+            desired = any(isinstance(s, Pomodoro) and s.phase == WORK
+                          and s.state == RUNNING
+                          for s in self.sessions.values())
+        else:
+            desired = False
+        if desired == self._focus_active:
+            return
+        self._focus_active = desired
+        key = "focus_shortcut_on" if desired else "focus_shortcut_off"
+        focus.run_shortcut(self.settings.get(key, ""))
+
+    # --------------------------------------------------------------- hotkey
+    def _configure_hotkey(self):
+        action = self.settings.get("hotkey_action", "none")
+        combo = self.settings.get("hotkey_key", "")
+        if action != "none" and combo:
+            hotkey.is_trusted(prompt=True)  # nudge Accessibility grant if needed
+            self.hotkeys.configure(combo)
+        else:
+            self.hotkeys.stop()
+
+    def _on_hotkey(self):
+        action = self.settings.get("hotkey_action", "none")
+        if action == "pomodoro":
+            self._start_pomodoro_session("")
+        elif action == "timer":
+            self.start_timer(None)
+        elif action == "keepawake":
+            self.toggle_keep_awake()
+
+    # ---------------------------------------------------------------- settings
+    def apply_launch_at_login(self, new_value):
+        """Enable/disable the launch-at-login LaunchAgent and persist the flag.
+
+        Raises on failure so the caller can surface the error.
+        """
+        launch_agent.set_enabled(new_value, app_path=self._bundle_path())
+        self.settings.data["launch_at_login"] = new_value
+        self.settings.save()
 
     def _bundle_path(self) -> str | None:
         # When frozen in a .app, the executable lives under *.app/Contents/MacOS.
@@ -463,13 +518,21 @@ class TomatickApp(rumps.App):
 
     def about(self, _):
         rumps.alert(
-            title=f"{APP_NAME}",
+            title=f"{APP_NAME} {__version__}",
             message=(
                 "A menu bar timer, stopwatch, alarm and pomodoro.\n\n"
-                "Menu bar icons by Flaticon (https://www.flaticon.com/free-icons/clock).\n"
+                "Menu bar icons by Flaticon (https://www.flaticon.com/free-icons/clock).\n\n"
                 "Built with rumps + PyObjC."
             ),
         )
+
+    def quit_app(self, _):
+        # Release the keep-awake assertion and clear Focus before exiting.
+        self.keep_awake.off()
+        if self._focus_active:
+            focus.run_shortcut(self.settings.get("focus_shortcut_off", ""))
+        self.hotkeys.stop()
+        rumps.quit_application()
 
 
 def main():

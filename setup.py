@@ -10,12 +10,24 @@ build or run it locally; on first launch use Finder → right-click → Open to 
 past Gatekeeper for the unsigned bundle.
 """
 
+import re
 from pathlib import Path
 
 from setuptools import setup
 
 HERE = Path(__file__).parent
 ASSETS = HERE / "tomatick" / "assets"
+
+# Single source of truth for the version: tomatick/__init__.py.
+_VERSION_MATCH = re.search(
+    r'__version__\s*=\s*"([^"]+)"',
+    (HERE / "tomatick" / "__init__.py").read_text(),
+)
+if not _VERSION_MATCH:
+    raise RuntimeError(
+        'Could not find __version__ in tomatick/__init__.py '
+        '(expected: __version__ = "X.Y.Z").')
+VERSION = _VERSION_MATCH.group(1)
 
 APP = ["run_tomatick.py"]
 
@@ -34,8 +46,8 @@ OPTIONS = {
         "CFBundleName": "Tomatick",
         "CFBundleDisplayName": "Tomatick",
         "CFBundleIdentifier": "us.tomatick",
-        "CFBundleVersion": "0.1.0",
-        "CFBundleShortVersionString": "0.1.0",
+        "CFBundleVersion": VERSION,
+        "CFBundleShortVersionString": VERSION,
         "NSHumanReadableCopyright": "Icons by Flaticon.",
     },
     "packages": ["rumps", "tomatick"],

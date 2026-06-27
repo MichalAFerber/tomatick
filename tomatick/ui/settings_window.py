@@ -185,7 +185,7 @@ def _settings_controller_class():
 
         # -- build & run --------------------------------------------------
         def show(self):
-            W, H = 500, 420
+            W, H = 520, 440
             style = (AppKit.NSWindowStyleMaskTitled
                      | AppKit.NSWindowStyleMaskClosable)
             win = AppKit.NSWindow.alloc().initWithContentRect_styleMask_backing_defer_(
@@ -206,6 +206,7 @@ def _settings_controller_class():
             tabs.addTabViewItem_(self._presets_tab(cw, ch))
             tabs.addTabViewItem_(self._alarms_tab(cw, ch))
             tabs.addTabViewItem_(self._history_tab(cw, ch))
+            tabs.addTabViewItem_(self._about_tab(cw, ch))
 
             cancel = AppKit.NSButton.alloc().initWithFrame_(
                 NSMakeRect(W - 200, 14, 90, 30))
@@ -292,7 +293,31 @@ def _settings_controller_class():
                              else AppKit.NSControlStateValueOff)
             view.addSubview_(launch)
             self._launch = launch
+            y -= 40
+
+            exp = AppKit.NSButton.alloc().initWithFrame_(
+                NSMakeRect(16, y, 150, 28))
+            exp.setTitle_("Export Settings…")
+            exp.setBezelStyle_(AppKit.NSBezelStyleRounded)
+            exp.setTarget_(self)
+            exp.setAction_("exportSettings:")
+            view.addSubview_(exp)
+
+            imp = AppKit.NSButton.alloc().initWithFrame_(
+                NSMakeRect(174, y, 150, 28))
+            imp.setTitle_("Import Settings…")
+            imp.setBezelStyle_(AppKit.NSBezelStyleRounded)
+            imp.setTarget_(self)
+            imp.setAction_("importSettings:")
+            view.addSubview_(imp)
             return item
+
+        def exportSettings_(self, sender):
+            self._app.export_settings()
+
+        def importSettings_(self, sender):
+            if self._app.import_settings():
+                self._window.close()  # reopen to see imported values
 
         @objc.python_method
         def _pomodoro_tab(self, cw, ch):
@@ -528,6 +553,66 @@ def _settings_controller_class():
             title = sender.titleOfSelectedItem()
             if title:
                 self._app.cue_player.play(title, loop=False)
+
+        # -- About tab ----------------------------------------------------
+        @objc.python_method
+        def _about_tab(self, cw, ch):
+            from .. import __version__
+            item, view = self._tab_view("about", "About", cw, ch)
+
+            iv = AppKit.NSImageView.alloc().initWithFrame_(
+                NSMakeRect(16, ch - 88, 72, 72))
+            img = AppKit.NSApplication.sharedApplication().applicationIconImage()
+            if img is not None:
+                iv.setImage_(img)
+            view.addSubview_(iv)
+
+            title = self._label(f"Tomatick {__version__}", 100, ch - 60, cw - 116)
+            try:
+                title.setFont_(AppKit.NSFont.boldSystemFontOfSize_(18))
+            except Exception:  # pragma: no cover
+                pass
+            view.addSubview_(title)
+
+            body = AppKit.NSTextField.alloc().initWithFrame_(
+                NSMakeRect(16, 60, cw - 32, ch - 156))
+            body.setBezeled_(False)
+            body.setDrawsBackground_(False)
+            body.setEditable_(False)
+            body.setSelectable_(True)
+            body.setStringValue_(
+                "A macOS menu bar timer, stopwatch, alarm and pomodoro.\n\n"
+                "Menu bar icons by Flaticon "
+                "(https://www.flaticon.com/free-icons/clock).\n\n"
+                "Built with rumps + PyObjC.")
+            try:
+                body.cell().setWraps_(True)
+            except Exception:  # pragma: no cover
+                pass
+            view.addSubview_(body)
+
+            guide = AppKit.NSButton.alloc().initWithFrame_(
+                NSMakeRect(16, 16, 160, 28))
+            guide.setTitle_("Quick Start Guide")
+            guide.setBezelStyle_(AppKit.NSBezelStyleRounded)
+            guide.setTarget_(self)
+            guide.setAction_("openGuide:")
+            view.addSubview_(guide)
+
+            repo = AppKit.NSButton.alloc().initWithFrame_(
+                NSMakeRect(184, 16, 150, 28))
+            repo.setTitle_("View on GitHub")
+            repo.setBezelStyle_(AppKit.NSBezelStyleRounded)
+            repo.setTarget_(self)
+            repo.setAction_("openRepo:")
+            view.addSubview_(repo)
+            return item
+
+        def openGuide_(self, sender):
+            self._app.open_help()
+
+        def openRepo_(self, sender):
+            self._app.open_repo()
 
         # -- Save / Cancel / close ---------------------------------------
         def save_(self, sender):

@@ -94,6 +94,10 @@ class Settings:
     def save(self) -> None:
         config_path().write_text(json.dumps(self.data, indent=2, sort_keys=True))
 
+    def normalize(self) -> None:
+        """Backfill any missing defaults (e.g. after importing a partial config)."""
+        self.data = _deep_merge(DEFAULTS, self.data)
+
     # Convenience accessors -------------------------------------------------
     def get(self, key: str, default: Any = None) -> Any:
         return self.data.get(key, default)

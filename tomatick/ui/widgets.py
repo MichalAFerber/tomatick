@@ -59,3 +59,40 @@ def choose(message: str, options: List[str], title: str = "Tomatick") -> Optiona
     if 0 <= idx < len(options):
         return options[idx]
     return None
+
+
+def save_file_panel(default_name: str, title: str = "Save") -> Optional[str]:
+    """Native Save panel returning a path, or None if cancelled."""
+    if not HAVE_APPKIT:
+        from pathlib import Path
+        return ask_text("Save to path:", title=title,
+                        default=str(Path.home() / "Desktop" / default_name))
+    import AppKit
+
+    panel = AppKit.NSSavePanel.savePanel()
+    panel.setTitle_(title)
+    panel.setNameFieldStringValue_(default_name)
+    AppKit.NSApp.activateIgnoringOtherApps_(True)
+    if panel.runModal() == AppKit.NSModalResponseOK and panel.URL() is not None:
+        return panel.URL().path()
+    return None
+
+
+def open_file_panel(title: str = "Open") -> Optional[str]:
+    """Native Open panel returning a chosen file path, or None if cancelled."""
+    if not HAVE_APPKIT:
+        from pathlib import Path
+        return ask_text("Open path:", title=title, default=str(Path.home() / "Desktop"))
+    import AppKit
+
+    panel = AppKit.NSOpenPanel.openPanel()
+    panel.setTitle_(title)
+    panel.setCanChooseFiles_(True)
+    panel.setCanChooseDirectories_(False)
+    panel.setAllowsMultipleSelection_(False)
+    AppKit.NSApp.activateIgnoringOtherApps_(True)
+    if panel.runModal() == AppKit.NSModalResponseOK:
+        urls = panel.URLs()
+        if urls and urls.count():
+            return urls[0].path()
+    return None

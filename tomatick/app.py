@@ -12,6 +12,7 @@ have no macOS dependencies and are unit tested separately.
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from collections import OrderedDict
@@ -30,6 +31,17 @@ from .settings import APP_NAME, Settings, support_dir
 from .ui import alarm_editor, settings_window
 
 ASSETS = Path(__file__).parent / "assets"
+
+HELP_URL = "https://michalaferber.github.io/tomatick/"
+REPO_URL = "https://github.com/MichalAFerber/tomatick"
+
+# Settings keys safe to share across machines (excludes launch_at_login, which
+# is per-machine and tied to the installed app path).
+SHAREABLE_KEYS = [
+    "pomodoro", "snooze_minutes", "default_sound", "alarms", "presets",
+    "focus_shortcut_on", "focus_shortcut_off", "focus_during_work",
+    "hotkey_action", "hotkey_key",
+]
 
 
 class TomatickApp(rumps.App):
@@ -132,7 +144,7 @@ class TomatickApp(rumps.App):
         m.append(keep_awake_item)
         m.append(None)
 
-        m.append(rumps.MenuItem("About", callback=self.about))
+        m.append(rumps.MenuItem("Quick Start Guide", callback=self.open_help))
         m.append(rumps.MenuItem("Quit", callback=self.quit_app))
 
         self.menu.update(m)
@@ -516,15 +528,58 @@ class TomatickApp(rumps.App):
                 return str(parent)
         return None
 
-    def about(self, _):
-        rumps.alert(
-            title=f"{APP_NAME} {__version__}",
-            message=(
-                "A menu bar timer, stopwatch, alarm and pomodoro.\n\n"
-                "Menu bar icons by Flaticon (https://www.flaticon.com/free-icons/clock).\n\n"
-                "Built with rumps + PyObjC."
-            ),
-        )
+    # ------------------------------------------------------ import / export
+    def export_settings(self):
+        from .ui import widgets
+        path = widgets.save_file_panel("tomatick-settings.json",
+                                       title="Export Settings")
+        if not path:
+            return
+        data = {k: self.settings.data[k] for k in SHAREABLE_KEYS
+                if k in self.settings.data}
+        try:
+            Path(path).write_text(json.dumps(data, indent=2, sort_keys=True))
+        except OSError as exc:
+            widgets.confirm(f"Couldn't write settings: {exc}")
+            return
+        widgets.confirm(f"Exported settings to:\n{path}", title="Export Settings")
+
+    def import_settings(self) -> bool:
+        from .ui import widgets
+        path = widgets.open_file_panel(title="Import Settings")
+        if not path:
+            return False
+        try:
+            incoming = json.loads(Path(path).read_text())
+        except (OSError, json.JSONDecodeError) as exc:
+            widgets.confirm(f"Couldn't read settings: {exc}", title="Import Settings")
+            return False
+        if not isinstance(incoming, dict):
+            widgets.confirm("That file isn't a Tomatick settings file.",
+                            title="Import Settings")
+            return False
+        applied = [k for k in SHAREABLE_KEYS if k in incoming]
+        for k in applied:
+            self.settings.data[k] = incoming[k]
+        self.settings.normalize()  # backfill anything the file omitted
+        self.alarms = load_alarms(self.settings.data.get("alarms", []))
+        self.settings.save()
+        self._configure_hotkey()
+        self.rebuild_menu()
+        widgets.confirm(f"Imported {len(applied)} setting group(s).",
+                        title="Import Settings")
+        return True
+
+    # ----------------------------------------------------------------- links
+    def open_url(self, url):
+        import webbrowser
+        webbrowser.open(url)
+
+    def open_help(self, _=None):
+        self.open_url(HELP_URL)
+
+    def open_repo(self, _=None):
+        self.open_url(REPO_URL)
 
     def quit_app(self, _):
         # Release the keep-awake assertion and clear Focus before exiting.

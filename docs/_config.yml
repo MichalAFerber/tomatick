@@ -2,3 +2,11 @@ title: Tomatick
 description: A macOS menu bar timer, stopwatch, alarm and pomodoro — all in one icon.
 theme: jekyll-theme-cayman
 show_downloads: true
+
+# Single canonical host (apex domain set via docs/CNAME). jekyll-seo-tag uses
+# this to emit <link rel="canonical"> on every page.
+url: "https://tomatick.us"
+baseurl: ""
+
+plugins:
+  - jekyll-seo-tag

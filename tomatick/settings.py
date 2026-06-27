@@ -41,6 +41,8 @@ DEFAULTS: Dict[str, Any] = {
     # Single global hotkey: action id + key-combo symbol string ("" = none).
     "hotkey_action": "none",
     "hotkey_key": "",
+    # Menu-bar icon theme: red | white | black.
+    "icon_theme": "red",
 }
 
 

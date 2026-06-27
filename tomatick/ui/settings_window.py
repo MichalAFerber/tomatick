@@ -185,7 +185,7 @@ def _settings_controller_class():
 
         # -- build & run --------------------------------------------------
         def show(self):
-            W, H = 520, 440
+            W, H = 520, 470
             style = (AppKit.NSWindowStyleMaskTitled
                      | AppKit.NSWindowStyleMaskClosable)
             win = AppKit.NSWindow.alloc().initWithContentRect_styleMask_backing_defer_(
@@ -254,6 +254,16 @@ def _settings_controller_class():
             popup.setAction_("previewSound:")
             view.addSubview_(popup)
             self._sound = popup
+            y -= 40
+
+            view.addSubview_(self._label("Menu bar icon:", 16, y, 110))
+            mb = AppKit.NSPopUpButton.alloc().initWithFrame_pullsDown_(
+                NSMakeRect(132, y - 2, cw - 148, 26), False)
+            mb.addItemsWithTitles_(["Red", "White", "Black"])
+            mb.selectItemWithTitle_(
+                self._app.settings.get("icon_theme", "red").capitalize())
+            view.addSubview_(mb)
+            self._mb_theme = mb
             y -= 40
 
             view.addSubview_(self._label("Snooze minutes:", 16, y, 130))
@@ -582,8 +592,6 @@ def _settings_controller_class():
             body.setSelectable_(True)
             body.setStringValue_(
                 "A macOS menu bar timer, stopwatch, alarm and pomodoro.\n\n"
-                "Menu bar icons by Flaticon "
-                "(https://www.flaticon.com/free-icons/clock).\n\n"
                 "Built with rumps + PyObjC.")
             try:
                 body.cell().setWraps_(True)
@@ -626,6 +634,8 @@ def _settings_controller_class():
             title = self._sound.titleOfSelectedItem()
             if title:
                 settings.data["default_sound"] = title
+            settings.data["icon_theme"] = (
+                self._mb_theme.titleOfSelectedItem() or "Red").lower()
             settings.data["snooze_minutes"] = self._read_int(
                 self._snooze, settings.snooze_minutes)
 
@@ -651,7 +661,10 @@ def _settings_controller_class():
 
             settings.save()
             self._app._configure_hotkey()
+            self._app._load_icon_frames()  # apply menu-bar theme change
+            self._app._sync_alarm_animation()  # resync if theme changed mid-alarm
             self._app.rebuild_menu()
+            self._app._update_title()
             self._window.close()
 
         def cancel_(self, sender):

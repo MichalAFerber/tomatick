@@ -48,7 +48,7 @@ OPTIONS = {
         "CFBundleIdentifier": "us.tomatick",
         "CFBundleVersion": VERSION,
         "CFBundleShortVersionString": VERSION,
-        "NSHumanReadableCopyright": "Icons by Flaticon.",
+        "NSHumanReadableCopyright": "© 2026 Michal Ferber. MIT License.",
     },
     "packages": ["rumps", "tomatick"],
 }

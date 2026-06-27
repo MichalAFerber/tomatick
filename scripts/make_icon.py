@@ -20,6 +20,15 @@ from Foundation import NSMakeRect, NSMakePoint
 SIZE = 1024
 ASSETS = Path(__file__).resolve().parent.parent / "tomatick" / "assets"
 
+# Menu-bar icon: small canvas (rendered crisp, displayed small). Padding leaves
+# room so the alarm frames (rotation + scale) don't clip. Each alarm frame is
+# (shake_angle_degrees, pulse_scale) — together they rock AND bulge out.
+MB_SIZE = 44
+ALARM_FRAMES = [
+    (-9, 1.05), (-4, 1.12), (0, 1.16), (4, 1.12),
+    (9, 1.05), (4, 1.10), (0, 1.14), (-4, 1.10),
+]
+
 
 def _color(r, g, b, a=1.0):
     return AppKit.NSColor.colorWithCalibratedRed_green_blue_alpha_(r, g, b, a)
@@ -72,18 +81,88 @@ def _draw():
     stem.fill()
 
 
-def render_master(path: Path):
+def _render_png(size, draw_fn, path):
     rep = AppKit.NSBitmapImageRep.alloc().initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bytesPerRow_bitsPerPixel_(
-        None, SIZE, SIZE, 8, 4, True, False,
+        None, size, size, 8, 4, True, False,
         AppKit.NSCalibratedRGBColorSpace, 0, 0)
     ctx = AppKit.NSGraphicsContext.graphicsContextWithBitmapImageRep_(rep)
     AppKit.NSGraphicsContext.saveGraphicsState()
     AppKit.NSGraphicsContext.setCurrentContext_(ctx)
-    _draw()
+    draw_fn()
     AppKit.NSGraphicsContext.restoreGraphicsState()
     png = rep.representationUsingType_properties_(
         AppKit.NSBitmapImageFileTypePNG, {})
     png.writeToFile_atomically_(str(path), True)
+
+
+def render_master(path: Path):
+    _render_png(SIZE, _draw, path)
+
+
+def _draw_menubar(spec, angle_deg=0.0, scale=1.0):
+    """Draw a plump, round menu-bar tomato glyph, rotated + scaled about center.
+
+    Wider-than-tall body; red theme uses a radial gradient + specular shine for a
+    glossy look, white/black are solid silhouettes. Prominent green calyx + stem.
+    """
+    S = MB_SIZE
+    if angle_deg or scale != 1.0:
+        t = AppKit.NSAffineTransform.transform()
+        t.translateXBy_yBy_(S / 2.0, S / 2.0)
+        if angle_deg:
+            t.rotateByDegrees_(angle_deg)
+        if scale != 1.0:
+            t.scaleBy_(scale)
+        t.translateXBy_yBy_(-S / 2.0, -S / 2.0)
+        t.concat()
+
+    # Plump body: wider than tall, filling most of the canvas (the remaining
+    # padding leaves room for the rotation + pulse on the alarm frames).
+    body = AppKit.NSBezierPath.bezierPathWithOvalInRect_(NSMakeRect(5, 7, 34, 23))
+    if spec.get("grad"):
+        grad = AppKit.NSGradient.alloc().initWithColors_(spec["grad"])
+        # Light source upper-left for a glossy 3-D sphere feel.
+        grad.drawInBezierPath_relativeCenterPosition_(body, (-0.35, 0.35))
+    else:
+        spec["body"].set()
+        body.fill()
+
+    if spec.get("shine") is not None:
+        shine = AppKit.NSBezierPath.bezierPathWithOvalInRect_(NSMakeRect(11, 23, 12, 6))
+        spec["shine"].set()
+        shine.fill()
+
+    # Prominent green calyx (pointy leaves) + a stem nub on top.
+    calyx = _star_path(22, 30, 8.0, 3.3, points=5)
+    spec["calyx"].set()
+    calyx.fill()
+
+    stem = AppKit.NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
+        NSMakeRect(20, 33, 4, 5), 1.8, 1.8)
+    spec["stem"].set()
+    stem.fill()
+
+
+def build_menubar_icons():
+    """Render idle + shake frames for each selectable theme into assets/."""
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    themes = {
+        "red": {"grad": [_color(1.0, 0.46, 0.36), _color(0.91, 0.18, 0.14),
+                         _color(0.70, 0.07, 0.06)],
+                "shine": _color(1, 1, 1, 0.55), "calyx": _color(0.33, 0.62, 0.27),
+                "stem": _color(0.28, 0.45, 0.20)},
+        "white": {"body": _color(1, 1, 1), "shine": None,
+                  "calyx": _color(1, 1, 1), "stem": _color(1, 1, 1)},
+        "black": {"body": _color(0, 0, 0), "shine": None,
+                  "calyx": _color(0, 0, 0), "stem": _color(0, 0, 0)},
+    }
+    for name, spec in themes.items():
+        _render_png(MB_SIZE, lambda s=spec: _draw_menubar(s, 0.0, 1.0),
+                    ASSETS / f"mb_{name}.png")
+        for j, (ang, sc) in enumerate(ALARM_FRAMES):
+            _render_png(MB_SIZE, lambda s=spec, a=ang, z=sc: _draw_menubar(s, a, z),
+                        ASSETS / f"mb_{name}_{j}.png")
+    print(f"wrote menu-bar frames for: {', '.join(themes)}")
 
 
 def build_icns():
@@ -117,3 +196,4 @@ def build_icns():
 
 if __name__ == "__main__":
     build_icns()
+    build_menubar_icons()

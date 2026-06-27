@@ -35,12 +35,16 @@ ASSETS = Path(__file__).parent / "assets"
 HELP_URL = "https://michalaferber.github.io/tomatick/"
 REPO_URL = "https://github.com/MichalAFerber/tomatick"
 
+# Menu-bar icon display size (points). A touch larger than the standard status
+# icons (per request); rumps would otherwise force a fixed 20pt.
+MENUBAR_PT = 24
+
 # Settings keys safe to share across machines (excludes launch_at_login, which
 # is per-machine and tied to the installed app path).
 SHAREABLE_KEYS = [
     "pomodoro", "snooze_minutes", "default_sound", "alarms", "presets",
     "focus_shortcut_on", "focus_shortcut_off", "focus_during_work",
-    "hotkey_action", "hotkey_key",
+    "hotkey_action", "hotkey_key", "icon_theme",
 ]
 
 
@@ -64,10 +68,15 @@ class TomatickApp(rumps.App):
         self.alarm_player = SoundPlayer()   # looping ring
         self.cue_player = SoundPlayer()     # one-shot cues
 
-        # Menu-bar icons (template images adapt to light/dark menu bars).
-        self._idle_icon = self._asset("idle.png")
-        self._running_icon = self._asset("running.png")
-        self.template = True
+        # Menu-bar icon: original tomato art, selectable theme (red/white/black).
+        # Colored/solid, so template mode is off; idle is static, shake frames
+        # cycle while an event is alarming.
+        self.template = False
+        self._idle_frame = None
+        self._shake_frames = []
+        self._anim_idx = 0
+        self._image_cache = {}  # path -> sized NSImage, avoids per-tick churn
+        self._load_icon_frames()
 
         self._open_windows: list = []  # keep PyObjC window controllers alive
 
@@ -79,13 +88,35 @@ class TomatickApp(rumps.App):
         self._update_title()
         self._configure_hotkey()
 
+        self._anim_timer = rumps.Timer(self._animate_alarm, 0.09)  # shake cadence
         self.timer = rumps.Timer(self.on_tick, 1)
         self.timer.start()
 
     # ------------------------------------------------------------------ utils
     def _asset(self, name: str) -> str | None:
-        path = ASSETS / name
-        return str(path) if path.exists() else None
+        # Frozen .app keeps data files under Contents/Resources/assets.
+        frozen = Path(sys.executable).parent.parent / "Resources" / "assets" / name
+        if frozen.exists():
+            return str(frozen)
+        local = ASSETS / name
+        return str(local) if local.exists() else None
+
+    def _load_icon_frames(self):
+        """Pick idle + shake frame paths for the configured menu-bar theme."""
+        theme = self.settings.get("icon_theme", "red")
+        idle = self._asset(f"mb_{theme}.png")
+        if idle is None:  # missing theme art -> red, then emoji fallback
+            theme, idle = "red", self._asset("mb_red.png")
+        self._idle_frame = idle
+        frames, i = [], 0
+        while True:
+            p = self._asset(f"mb_{theme}_{i}.png")
+            if p is None:
+                break
+            frames.append(p)
+            i += 1
+        self._shake_frames = frames
+        self._image_cache.clear()  # drop cached images from the previous theme
 
     def available_sounds(self):
         return available_sounds()
@@ -302,6 +333,7 @@ class TomatickApp(rumps.App):
             self.rebuild_menu()
         self._update_title()
         self._sync_focus()
+        self._sync_alarm_animation()
 
     def _check_alarms(self) -> bool:
         now = datetime.now()
@@ -349,6 +381,7 @@ class TomatickApp(rumps.App):
             self.alarm_player.stop()
         self.rebuild_menu()
         self._update_title()
+        self._sync_alarm_animation()
 
     def snooze_alarm(self, alarm):
         mins = self.settings.snooze_minutes
@@ -363,6 +396,7 @@ class TomatickApp(rumps.App):
             self.alarm_player.stop()
         self.rebuild_menu()
         self._update_title()
+        self._sync_alarm_animation()
 
     # ---------------------------------------------------------------- notifying
     def _notify_complete(self, sess):
@@ -392,15 +426,63 @@ class TomatickApp(rumps.App):
                 return sess
         return next(reversed(self.sessions.values()), None) if self.sessions else None
 
+    def _set_menubar_image(self, path) -> bool:
+        """Set the status-item image at MENUBAR_PT (so it matches sibling icons).
+
+        rumps' ``self.icon`` forces 20pt; setting the image directly lets us pick
+        the height. Returns False before the status item exists (pre-launch).
+        """
+        if not path:
+            return False
+        try:
+            item = self._nsapp.nsstatusitem
+        except AttributeError:
+            return False
+        if item is None:
+            return False
+        img = self._image_cache.get(path)
+        if img is None:
+            import AppKit
+            img = AppKit.NSImage.alloc().initByReferencingFile_(path)
+            if img is None:
+                return False
+            img.setSize_((MENUBAR_PT, MENUBAR_PT))
+            img.setTemplate_(False)
+            self._image_cache[path] = img
+        item.setImage_(img)
+        return True
+
     def _update_title(self):
         primary = self._primary()
-        if self._idle_icon and self._running_icon:
-            self.icon = self._running_icon if primary else self._idle_icon
-            self.title = primary.title_text() if primary else ""
-        else:
+        self.title = (" " + primary.title_text()) if primary else ""
+        if self.firing_alarms:
+            return  # the shake animation owns the icon while alarming
+        if self._idle_frame:
+            if not self._set_menubar_image(self._idle_frame):
+                self.icon = self._idle_frame  # pre-launch fallback (rumps, 20pt)
+        else:  # art missing -> emoji fallback
             self.icon = None
             self.title = (f"{primary.icon} {primary.title_text()}"
                           if primary else "🍅")
+
+    # ------------------------------------------------------------- icon anim
+    def _animate_alarm(self, _):
+        if not self.firing_alarms or not self._shake_frames:
+            return
+        frame = self._shake_frames[self._anim_idx]  # show current frame...
+        if not self._set_menubar_image(frame):
+            self.icon = frame
+        self._anim_idx = (self._anim_idx + 1) % len(self._shake_frames)  # ...then advance
+
+    def _sync_alarm_animation(self):
+        """Start/stop the shake animation as alarming sessions come and go."""
+        alarming = bool(self.firing_alarms) and bool(self._shake_frames)
+        if alarming and not self._anim_timer.is_alive():
+            self._anim_idx = 0
+            self._anim_timer.start()
+        elif not alarming and self._anim_timer.is_alive():
+            self._anim_timer.stop()
+            self._update_title()  # restore the static idle icon
 
     # --------------------------------------------------------------- alarm CRUD
     def add_alarm(self, alarm):

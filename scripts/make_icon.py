@@ -59,26 +59,16 @@ def _draw():
         _color(1.0, 0.97, 0.93), _color(1.0, 0.88, 0.78))
     gradient.drawInBezierPath_angle_(bg, -90.0)
 
-    # Tomato body (slightly squat) with a soft highlight.
-    body = AppKit.NSBezierPath.bezierPathWithOvalInRect_(
-        NSMakeRect(192, 180, 640, 580))
-    _color(0.85, 0.20, 0.16).set()
-    body.fill()
-
-    highlight = AppKit.NSBezierPath.bezierPathWithOvalInRect_(
-        NSMakeRect(300, 540, 240, 150))
-    _color(1.0, 0.58, 0.48, 0.45).set()
-    highlight.fill()
-
-    # Green calyx (5-point star) and stem on top.
-    calyx = _star_path(512, 700, 165, 70, points=5)
-    _color(0.36, 0.62, 0.27).set()
-    calyx.fill()
-
-    stem = AppKit.NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
-        NSMakeRect(494, 740, 36, 110), 18, 18)
-    _color(0.30, 0.46, 0.22).set()
-    stem.fill()
+    # The same glossy plump tomato as the menu bar, centered on the squircle.
+    spec = _menubar_themes()["red"]
+    AppKit.NSGraphicsContext.saveGraphicsState()
+    s = 17.0  # 44-unit glyph -> ~750px, centered in the 1024 canvas
+    t = AppKit.NSAffineTransform.transform()
+    t.translateXBy_yBy_(SIZE / 2.0 - 22 * s, SIZE / 2.0 - 22 * s)
+    t.scaleBy_(s)
+    t.concat()
+    _draw_menubar(spec, 0.0, 1.0)
+    AppKit.NSGraphicsContext.restoreGraphicsState()
 
 
 def _render_png(size, draw_fn, path):

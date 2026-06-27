@@ -32,7 +32,7 @@ from .ui import alarm_editor, settings_window
 
 ASSETS = Path(__file__).parent / "assets"
 
-HELP_URL = "https://michalaferber.github.io/tomatick/"
+HELP_URL = "https://tomatick.us/"
 REPO_URL = "https://github.com/MichalAFerber/tomatick"
 BMC_URL = "https://www.buymeacoffee.com/TechGuyWithABeard"
 
@@ -612,6 +612,17 @@ class TomatickApp(rumps.App):
         return None
 
     # ------------------------------------------------------ import / export
+    def _apply_settings_changes(self):
+        """Re-apply settings that affect live state (hotkey + menu-bar icon).
+
+        Shared by the settings window's Save and by import, so both stay in sync.
+        """
+        self._configure_hotkey()
+        self._load_icon_frames()
+        self._sync_alarm_animation()
+        self.rebuild_menu()
+        self._update_title()
+
     def export_settings(self):
         from .ui import widgets
         path = widgets.save_file_panel("tomatick-settings.json",
@@ -647,8 +658,7 @@ class TomatickApp(rumps.App):
         self.settings.normalize()  # backfill anything the file omitted
         self.alarms = load_alarms(self.settings.data.get("alarms", []))
         self.settings.save()
-        self._configure_hotkey()
-        self.rebuild_menu()
+        self._apply_settings_changes()  # apply hotkey + icon theme live
         widgets.confirm(f"Imported {len(applied)} setting group(s).",
                         title="Import Settings")
         return True

@@ -65,6 +65,11 @@ def _open_fallback(app: "TomatickApp") -> None:
     if chosen:
         app.settings.data["default_sound"] = chosen
 
+    theme = widgets.choose("Menu bar icon theme:", ["Red", "White", "Black"],
+                           title="General")
+    if theme:
+        app.settings.data["icon_theme"] = theme.lower()
+
     snooze = widgets.ask_text("Snooze minutes:", title="General",
                               default=str(app.settings.snooze_minutes))
     if snooze is not None:
@@ -715,11 +720,7 @@ def _settings_controller_class():
                     widgets.confirm(f"Couldn't update launch-at-login: {exc}")
 
             settings.save()
-            self._app._configure_hotkey()
-            self._app._load_icon_frames()  # apply menu-bar theme change
-            self._app._sync_alarm_animation()  # resync if theme changed mid-alarm
-            self._app.rebuild_menu()
-            self._app._update_title()
+            self._app._apply_settings_changes()  # hotkey + menu-bar icon, live
             self._window.close()
 
         def cancel_(self, sender):

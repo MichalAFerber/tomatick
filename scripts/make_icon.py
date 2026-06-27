@@ -143,10 +143,8 @@ def _draw_menubar(spec, angle_deg=0.0, scale=1.0):
     stem.fill()
 
 
-def build_menubar_icons():
-    """Render idle + shake frames for each selectable theme into assets/."""
-    ASSETS.mkdir(parents=True, exist_ok=True)
-    themes = {
+def _menubar_themes():
+    return {
         "red": {"grad": [_color(1.0, 0.46, 0.36), _color(0.91, 0.18, 0.14),
                          _color(0.70, 0.07, 0.06)],
                 "shine": _color(1, 1, 1, 0.55), "calyx": _color(0.33, 0.62, 0.27),
@@ -156,6 +154,54 @@ def build_menubar_icons():
         "black": {"body": _color(0, 0, 0), "shine": None,
                   "calyx": _color(0, 0, 0), "stem": _color(0, 0, 0)},
     }
+
+
+def build_about_image():
+    """Render a large, crisp version of the red tomato for the About tab."""
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    spec = _menubar_themes()["red"]
+    S = 256
+
+    def draw():
+        t = AppKit.NSAffineTransform.transform()
+        t.scaleBy_(S / float(MB_SIZE))  # draw the 44-unit glyph filling 256px
+        t.concat()
+        _draw_menubar(spec, 0.0, 1.0)
+
+    _render_png(S, draw, ASSETS / "about.png")
+    print("wrote about.png")
+
+
+def build_extlink_icon():
+    """Render an original external-link glyph (box + out-arrow) for link buttons."""
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    S = 36
+    col = _color(0.5, 0.5, 0.5)
+
+    def draw():
+        col.set()
+        box = AppKit.NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
+            NSMakeRect(5, 4, 17, 17), 3, 3)
+        box.setLineWidth_(3.0)
+        box.stroke()
+        arrow = AppKit.NSBezierPath.bezierPath()
+        arrow.setLineWidth_(3.0)
+        arrow.moveToPoint_(NSMakePoint(17, 17))
+        arrow.lineToPoint_(NSMakePoint(30, 30))
+        arrow.moveToPoint_(NSMakePoint(30, 30))
+        arrow.lineToPoint_(NSMakePoint(21, 30))
+        arrow.moveToPoint_(NSMakePoint(30, 30))
+        arrow.lineToPoint_(NSMakePoint(30, 21))
+        arrow.stroke()
+
+    _render_png(S, draw, ASSETS / "extlink.png")
+    print("wrote extlink.png")
+
+
+def build_menubar_icons():
+    """Render idle + shake frames for each selectable theme into assets/."""
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    themes = _menubar_themes()
     for name, spec in themes.items():
         _render_png(MB_SIZE, lambda s=spec: _draw_menubar(s, 0.0, 1.0),
                     ASSETS / f"mb_{name}.png")
@@ -197,3 +243,5 @@ def build_icns():
 if __name__ == "__main__":
     build_icns()
     build_menubar_icons()
+    build_about_image()
+    build_extlink_icon()

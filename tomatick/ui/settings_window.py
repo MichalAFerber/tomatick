@@ -566,18 +566,62 @@ def _settings_controller_class():
 
         # -- About tab ----------------------------------------------------
         @objc.python_method
+        def _link_button(self, label, left_icon_name, action, template_icon=False):
+            """A rounded button: [left icon] label [external-link icon].
+
+            Sized to its content (origin set by the caller) so the external-link
+            glyph lands at the button's right edge. ``template_icon`` renders a
+            monochrome left icon (e.g. the GitHub mark) so it adapts to light/dark.
+            """
+            btn = AppKit.NSButton.alloc().initWithFrame_(NSMakeRect(0, 0, 200, 30))
+            btn.setBezelStyle_(AppKit.NSBezelStyleRounded)
+            btn.setTarget_(self)
+            btn.setAction_(action)
+
+            icon = self._app._asset(left_icon_name) if left_icon_name else None
+            if icon:
+                li = AppKit.NSImage.alloc().initWithContentsOfFile_(icon)
+                if li is not None:
+                    li.setSize_((16, 16))
+                    li.setTemplate_(template_icon)
+                    btn.setImage_(li)
+                    btn.setImagePosition_(AppKit.NSImageLeft)
+                    btn.setImageScaling_(AppKit.NSImageScaleProportionallyDown)
+
+            title = AppKit.NSMutableAttributedString.alloc().initWithString_(label + "  ")
+            ext = self._app._asset("extlink.png")
+            if ext:
+                ei = AppKit.NSImage.alloc().initWithContentsOfFile_(ext)
+                if ei is not None:
+                    ei.setSize_((12, 12))
+                    att = AppKit.NSTextAttachment.alloc().init()
+                    att.setImage_(ei)
+                    att.setBounds_(NSMakeRect(0, -1.5, 12, 12))
+                    title.appendAttributedString_(
+                        AppKit.NSAttributedString.attributedStringWithAttachment_(att))
+            btn.setAttributedTitle_(title)
+
+            btn.sizeToFit()
+            f = btn.frame()
+            btn.setFrameSize_((f.size.width + 14, 30))  # a little breathing room
+            return btn
+
+        @objc.python_method
         def _about_tab(self, cw, ch):
             from .. import __version__
             item, view = self._tab_view("about", "About", cw, ch)
 
             iv = AppKit.NSImageView.alloc().initWithFrame_(
-                NSMakeRect(16, ch - 88, 72, 72))
-            img = AppKit.NSApplication.sharedApplication().applicationIconImage()
+                NSMakeRect(16, ch - 84, 72, 72))
+            about = self._app._asset("about.png")
+            img = (AppKit.NSImage.alloc().initWithContentsOfFile_(about) if about
+                   else AppKit.NSApplication.sharedApplication().applicationIconImage())
             if img is not None:
                 iv.setImage_(img)
+            iv.setImageScaling_(AppKit.NSImageScaleProportionallyUpOrDown)
             view.addSubview_(iv)
 
-            title = self._label(f"Tomatick {__version__}", 100, ch - 60, cw - 116)
+            title = self._label(f"Tomatick {__version__}", 100, ch - 48, cw - 116)
             try:
                 title.setFont_(AppKit.NSFont.boldSystemFontOfSize_(18))
             except Exception:  # pragma: no cover
@@ -585,35 +629,43 @@ def _settings_controller_class():
             view.addSubview_(title)
 
             body = AppKit.NSTextField.alloc().initWithFrame_(
-                NSMakeRect(16, 60, cw - 32, ch - 156))
+                NSMakeRect(100, ch - 84, cw - 116, 32))
             body.setBezeled_(False)
             body.setDrawsBackground_(False)
             body.setEditable_(False)
             body.setSelectable_(True)
             body.setStringValue_(
-                "A macOS menu bar timer, stopwatch, alarm and pomodoro.\n\n"
-                "Built with rumps + PyObjC.")
+                "A macOS menu bar timer, stopwatch, alarm and pomodoro.")
             try:
                 body.cell().setWraps_(True)
             except Exception:  # pragma: no cover
                 pass
             view.addSubview_(body)
 
-            guide = AppKit.NSButton.alloc().initWithFrame_(
-                NSMakeRect(16, 16, 160, 28))
-            guide.setTitle_("Quick Start Guide")
-            guide.setBezelStyle_(AppKit.NSBezelStyleRounded)
-            guide.setTarget_(self)
-            guide.setAction_("openGuide:")
+            guide = self._link_button("Quick Start Guide", "mb_red.png", "openGuide:")
+            guide.setFrameOrigin_((16, ch - 150))
             view.addSubview_(guide)
 
-            repo = AppKit.NSButton.alloc().initWithFrame_(
-                NSMakeRect(184, 16, 150, 28))
-            repo.setTitle_("View on GitHub")
-            repo.setBezelStyle_(AppKit.NSBezelStyleRounded)
-            repo.setTarget_(self)
-            repo.setAction_("openRepo:")
+            repo = self._link_button("GitHub Repo", "octocat.png", "openRepo:",
+                                     template_icon=True)
+            repo.setFrameOrigin_((16, ch - 186))
             view.addSubview_(repo)
+
+            bmc_path = self._app._asset("bmc.png")
+            if bmc_path:
+                bi = AppKit.NSImage.alloc().initWithContentsOfFile_(bmc_path)
+                if bi is not None and bi.size().height:
+                    h = 40.0
+                    w = h * bi.size().width / bi.size().height
+                    bi.setSize_((w, h))
+                    bmc = AppKit.NSButton.alloc().initWithFrame_(
+                        NSMakeRect(16, ch - 244, w, h))
+                    bmc.setBordered_(False)
+                    bmc.setImage_(bi)
+                    bmc.setImagePosition_(AppKit.NSImageOnly)
+                    bmc.setTarget_(self)
+                    bmc.setAction_("openBMC:")
+                    view.addSubview_(bmc)
             return item
 
         def openGuide_(self, sender):
@@ -621,6 +673,9 @@ def _settings_controller_class():
 
         def openRepo_(self, sender):
             self._app.open_repo()
+
+        def openBMC_(self, sender):
+            self._app.open_bmc()
 
         # -- Save / Cancel / close ---------------------------------------
         def save_(self, sender):

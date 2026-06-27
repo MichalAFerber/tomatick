@@ -34,6 +34,7 @@ ASSETS = Path(__file__).parent / "assets"
 
 HELP_URL = "https://michalaferber.github.io/tomatick/"
 REPO_URL = "https://github.com/MichalAFerber/tomatick"
+BMC_URL = "https://www.buymeacoffee.com/TechGuyWithABeard"
 
 # Menu-bar icon display size (points). A touch larger than the standard status
 # icons (per request); rumps would otherwise force a fixed 20pt.
@@ -662,6 +663,9 @@ class TomatickApp(rumps.App):
 
     def open_repo(self, _=None):
         self.open_url(REPO_URL)
+
+    def open_bmc(self, _=None):
+        self.open_url(BMC_URL)
 
     def quit_app(self, _):
         # Release the keep-awake assertion and clear Focus before exiting.

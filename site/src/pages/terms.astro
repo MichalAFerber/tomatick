@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../consts';
+const updated = 'July 2026';
+---
+<Base title="Terms of Use" description="Terms of use for Tomatick and tomatick.us." path="/terms/">
+  <div class="container-page py-12 sm:py-16">
+    <div class="doc">
+      <h1>Terms of Use</h1>
+      <p class="muted">Last updated: {updated}</p>
+
+      <h2>The software</h2>
+      <p>
+        Tomatick is free, open-source software released under the
+        <a href="https://github.com/MichalAFerber/tomatick/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>.
+        Your use, copying, modification and distribution of the software are governed by that license,
+        which also states that the software is provided <strong>“as is”, without warranty of any kind</strong>.
+      </p>
+
+      <h2>This website</h2>
+      <p>
+        tomatick.us provides information and downloads for the Tomatick app. We aim to keep it accurate and
+        available but make no guarantees of uptime, fitness for a particular purpose, or freedom from errors.
+        Download links point to release artifacts hosted on GitHub.
+      </p>
+
+      <h2>Acceptable use</h2>
+      <ul>
+        <li>Don't use the site to distribute malware or misrepresent the project.</li>
+        <li>Don't attempt to disrupt or gain unauthorized access to the site or its infrastructure.</li>
+        <li>The Tomatick and TechGuyWithABeard names and logos remain the property of their owner; the MIT license covers the code, not the brand marks.</li>
+      </ul>
+
+      <h2>Liability</h2>
+      <p>
+        To the fullest extent permitted by law, the authors and copyright holders are not liable for any
+        claim, damages, or other liability arising from the software or the use of this website.
+      </p>
+
+      <h2>Changes</h2>
+      <p>
+        These terms may be updated from time to time; the “last updated” date above reflects the latest revision.
+        Questions? See the <a href={SITE.repo} target="_blank" rel="noopener">GitHub repository</a>.
+      </p>
+    </div>
+  </div>
+</Base>

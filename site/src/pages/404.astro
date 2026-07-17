@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import TomatoLogo from '../components/TomatoLogo.astro';
+---
+<Base title="Page not found" path="/404" noindex={true}>
+  <section class="container-page flex flex-col items-center justify-center py-24 text-center">
+    <TomatoLogo class="h-16 w-16" />
+    <h1 class="mt-6 text-5xl sm:text-6xl">404</h1>
+    <p class="muted mt-3 text-lg">That page slipped off the timer.</p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a href="/" class="btn btn-primary">Back home</a>
+      <a href="/docs/" class="btn">Quick Start</a>
+    </div>
+  </section>
+</Base>

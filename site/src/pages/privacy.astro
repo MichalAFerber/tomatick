@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../consts';
+const updated = 'July 2026';
+---
+<Base title="Privacy Policy" description="How Tomatick and tomatick.us handle your data." path="/privacy/">
+  <div class="container-page py-12 sm:py-16">
+    <div class="doc">
+      <h1>Privacy Policy</h1>
+      <p class="muted">Last updated: {updated}</p>
+
+      <blockquote>
+        <strong>Short version:</strong> the Tomatick app stores everything locally on your Mac —
+        nothing is uploaded, no account, no server-side processing. This website uses privacy-friendly,
+        cookieless analytics and collects no personal information.
+      </blockquote>
+
+      <h2>The Tomatick app</h2>
+      <p>
+        Tomatick runs entirely on your Mac. Your settings, presets, alarms and event history are stored
+        in <code>~/Library/Application&nbsp;Support/Tomatick/</code> and <strong>never leave your
+        device</strong>. There are no accounts, no telemetry, and no network calls to us. If you use the
+        Export Settings / Export History features, the resulting files go wherever you choose to save them.
+      </p>
+
+      <h2>This website (tomatick.us)</h2>
+      <p>
+        tomatick.us is a static site. It uses <a href="https://plausible.io/data-policy" target="_blank" rel="noopener">Plausible Analytics</a>,
+        self-hosted by us, for aggregate visit statistics. Plausible is <strong>cookieless</strong>, sets no
+        persistent identifiers, and does not collect personal data or track you across sites. We use it to
+        count page views, referrers, and download clicks in aggregate — nothing that identifies you.
+      </p>
+      <ul>
+        <li>No cookies, no local storage beyond your chosen light/dark theme preference.</li>
+        <li>No advertising, no third-party trackers, no Google/Meta products.</li>
+        <li>Static assets are served over HTTPS from our own infrastructure.</li>
+      </ul>
+
+      <h2>Third parties</h2>
+      <p>
+        Downloads and source code are hosted on <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>;
+        visiting those links is subject to GitHub's own privacy policy. Analytics are handled by our
+        self-hosted Plausible instance.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions? Open an issue on the <a href={SITE.repo} target="_blank" rel="noopener">GitHub repository</a>
+        or email <span>michal&#64;techguywithabeard.com</span>.
+      </p>
+    </div>
+  </div>
+</Base>

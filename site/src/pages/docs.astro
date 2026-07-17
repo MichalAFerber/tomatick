@@ -1,0 +1,115 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../consts';
+---
+<Base
+  title="Quick Start"
+  description="How to install and use Tomatick — the macOS menu bar timer, stopwatch, alarm and pomodoro."
+  path="/docs/"
+  schema="WebApplication"
+>
+  <div class="container-page py-12 sm:py-16">
+    <div class="doc">
+      <h1>Quick Start</h1>
+      <p>
+        A macOS <strong>menu bar</strong> timer, stopwatch, alarm and pomodoro — all in one
+        icon, with a timestamped history of everything you run.
+      </p>
+      <blockquote>
+        <strong>Requirements:</strong> Apple Silicon Mac (M1/M2/M3/M4), a recent macOS. The
+        build is unsigned (no Apple Developer Program needed).
+      </blockquote>
+
+      <h2>1. Install</h2>
+      <ol>
+        <li>Download the latest <code>Tomatick-x.y.z.dmg</code> from the <a href={SITE.releases} target="_blank" rel="noopener">Releases</a> page.</li>
+        <li>Open the <code>.dmg</code> and drag <strong>Tomatick</strong> onto the <strong>Applications</strong> folder.</li>
+        <li>
+          <strong>First launch only:</strong> right-click <strong>Tomatick</strong> in Applications →
+          <strong>Open</strong> → <strong>Open</strong>. (A plain double-click is blocked the first
+          time because the app is unsigned.) If macOS still refuses, run once in Terminal:
+          <pre><code>xattr -dr com.apple.quarantine /Applications/Tomatick.app</code></pre>
+        </li>
+      </ol>
+      <p>
+        Tomatick is a <strong>menu bar app</strong> — there's no Dock icon and no window. Look for
+        the 🍅 (or stopwatch) icon in the <strong>top-right menu bar</strong>. Click it for everything.
+      </p>
+
+      <h2>2. Start something</h2>
+      <p>Click the menu bar icon → <strong>Start</strong>:</p>
+      <ul>
+        <li><strong>Timer</strong> — a natural duration: <code>25m</code>, <code>1h30m</code>, <code>90s</code>, <code>2:30</code>, or a bare number (minutes).</li>
+        <li><strong>Stopwatch</strong> — counts up; supports laps.</li>
+        <li><strong>Pomodoro</strong> — 25 / 5 / 15 by default, auto-advancing work ↔ break, long break every 4th work cycle.</li>
+        <li><strong>Alarm</strong> — one-shot (a date + time) or recurring (a time on chosen weekdays).</li>
+      </ul>
+      <p>
+        Every running session is listed in the menu. Click one for <strong>Pause/Resume</strong> and
+        <strong>Stop</strong>, plus <strong>Reset</strong> (timer &amp; stopwatch), <strong>Skip phase</strong>
+        (pomodoro) or <strong>Lap</strong> (stopwatch) — and <strong>Pin</strong> to make its countdown the
+        one shown in the menu bar. <strong>When a timer finishes it keeps ringing</strong> until you click
+        <strong>Dismiss</strong>, so you won't miss it.
+      </p>
+
+      <h2>3. Presets (one-click timers)</h2>
+      <p>Save the timers you start often (it ships with <strong>Focus 25:00</strong> and <strong>Quick break 5:00</strong>):</p>
+      <ul>
+        <li><strong>Use one:</strong> Start menu → pick a preset under the divider.</li>
+        <li><strong>Manage them:</strong> Settings → <strong>Presets</strong> tab → Add / Edit / Delete.</li>
+      </ul>
+
+      <h2>4. Settings</h2>
+      <p>Open <strong>Settings…</strong> from the menu — one window with tabs:</p>
+      <table>
+        <thead><tr><th>Tab</th><th>What's in it</th></tr></thead>
+        <tbody>
+          <tr><td><strong>General</strong></td><td>Default sound, snooze minutes, global hotkey, launch at login, Export / Import Settings</td></tr>
+          <tr><td><strong>Pomodoro</strong></td><td>Work / break lengths, auto-start, Focus during work</td></tr>
+          <tr><td><strong>Presets</strong></td><td>Manage quick-start timers</td></tr>
+          <tr><td><strong>Alarms</strong></td><td>Add / edit / delete alarms</td></tr>
+          <tr><td><strong>History</strong></td><td>Full event log — Export to CSV/JSON, Clear</td></tr>
+          <tr><td><strong>About</strong></td><td>Version, credits, links</td></tr>
+        </tbody>
+      </table>
+
+      <h2>5. Focus / Do-Not-Disturb during work</h2>
+      <p>
+        Tomatick can turn a macOS <strong>Focus</strong> on during a pomodoro <strong>work</strong> phase
+        and off on breaks. macOS has no public API for this, so it runs <strong>Shortcuts you create</strong>:
+      </p>
+      <ol>
+        <li>Open <strong>Shortcuts</strong> → <strong>+</strong> for a new shortcut.</li>
+        <li>Add <strong>Set Focus</strong> → choose your Focus → <strong>Turn On</strong>. Name it e.g. <code>Tomatick Focus On</code>.</li>
+        <li>Make a second shortcut that <strong>Turns Off</strong> that Focus, e.g. <code>Tomatick Focus Off</code>.</li>
+        <li>In Tomatick → Settings → <strong>Pomodoro</strong>, type those exact names into <strong>Focus Shortcut (on)/(off)</strong> and tick <strong>Trigger Focus during work phases</strong>. Save.</li>
+      </ol>
+      <p>Leave the names blank to disable the feature.</p>
+
+      <h2>6. Global hotkey</h2>
+      <p>
+        Settings → <strong>General</strong> → <strong>Global hotkey</strong>: pick an action (Start Pomodoro,
+        Start Timer, or Toggle Keep Awake) and a key (e.g. <code>⌥⌘P</code>). The first use prompts for
+        <strong>Accessibility</strong> permission (System Settings → Privacy &amp; Security → Accessibility).
+      </p>
+
+      <h2>7. Keep Awake</h2>
+      <p>Menu → <strong>Keep awake</strong> prevents sleep while it's on. Bindable to the hotkey; turns itself off on quit.</p>
+
+      <h2>8. Copy your setup to another Mac</h2>
+      <ol>
+        <li>Settings → <strong>General</strong> → <strong>Export Settings…</strong> → save the <code>.json</code>.</li>
+        <li>On the other Mac: <strong>Import Settings…</strong> → pick that file.</li>
+      </ol>
+      <p>This copies presets, pomodoro lengths, sounds, snooze, Focus shortcut names, hotkey, and alarms. (Launch-at-login stays per-machine.)</p>
+
+      <h2>Where your data lives</h2>
+      <pre><code>~/Library/Application Support/Tomatick/
+├── config.json     # all settings, presets, alarms
+└── history.db      # SQLite event history</code></pre>
+      <p>It never leaves your Mac. See the <a href="/privacy/">Privacy Policy</a> for the details.</p>
+
+      <p>Questions or bugs? See the <a href={SITE.repo} target="_blank" rel="noopener">GitHub repository</a>.</p>
+    </div>
+  </div>
+</Base>

@@ -1,0 +1,3 @@
+# tomatick.us runs no advertising and authorizes no programmatic sellers.
+# This file exists solely to declare that fact and block inventory spoofing.
+# (IAB ads.txt spec) — there are intentionally no seller records below.

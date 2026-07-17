@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import TomatoLogo from '../components/TomatoLogo.astro';
+import { SITE } from '../consts';
+
+const features = [
+  { icon: '⏱', title: 'Timer', body: 'Natural durations — 25m, 1h30m, 90s, 2:30. Live M:SS countdown right in the menu bar. It keeps ringing until you dismiss it.' },
+  { icon: '⏲', title: 'Stopwatch', body: 'Counts up with laps. Pause, resume, reset — all from the menu.' },
+  { icon: '🍅', title: 'Pomodoro', body: '25 / 5 / 15 by default, auto-advancing work ↔ break, long break every 4th cycle. Optional Focus/DND during work.' },
+  { icon: '🔔', title: 'Alarms', body: 'One-shot (a date + time) or recurring (a time on chosen weekdays). Looping sound + notification, with snooze.' },
+  { icon: '🧭', title: 'Run several at once', body: 'Multiple sessions together; the menu bar shows your pinned one live, everything else listed with its own count.' },
+  { icon: '🗂', title: 'Timestamped history', body: 'Every event logged to SQLite. Browse recent runs, export the full log to CSV or JSON.' },
+];
+
+const badges = ['Open source', 'MIT licensed', 'No data leaves your Mac', 'Apple Silicon'];
+---
+<Base
+  title="Tomatick — macOS menu bar timer, stopwatch, alarm & pomodoro"
+  path="/"
+  schema="WebApplication"
+>
+  <!-- Hero -->
+  <section class="container-page pt-16 pb-14 sm:pt-24 sm:pb-20">
+    <div class="mx-auto max-w-3xl text-center">
+      <TomatoLogo class="mx-auto h-20 w-20 sm:h-24 sm:w-24" />
+      <h1 class="mt-6 text-4xl sm:text-6xl">
+        One menu bar icon.<br />
+        <span style="color: var(--accent);">Every timer you need.</span>
+      </h1>
+      <p class="muted mx-auto mt-5 max-w-xl text-lg sm:text-xl">
+        Tomatick is a macOS <strong>menu bar</strong> timer, stopwatch, alarm and
+        pomodoro — with a timestamped history of everything you run.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a href={SITE.releases} target="_blank" rel="noopener" class="btn btn-primary text-lg">↓ Download for macOS</a>
+        <a href="/docs/" class="btn text-lg">Quick Start</a>
+      </div>
+      <ul class="mt-8 flex flex-wrap items-center justify-center gap-2.5" aria-label="Highlights">
+        {badges.map((b) => <li class="badge">{b}</li>)}
+      </ul>
+      <p class="muted mt-4 text-sm">Apple Silicon (M1–M4) · unsigned build, no Apple Developer Program needed.</p>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="container-page pb-8" aria-labelledby="features-h">
+    <h2 id="features-h" class="sr-only">Features</h2>
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {features.map((f) => (
+        <article class="card">
+          <div class="text-3xl" aria-hidden="true">{f.icon}</div>
+          <h3 class="mt-3 text-xl">{f.title}</h3>
+          <p class="muted mt-2 text-[15px] leading-relaxed">{f.body}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- How it works / CTA -->
+  <section class="container-page py-16">
+    <div class="card mx-auto max-w-3xl text-center" style="background-color: var(--bg-tint);">
+      <h2 class="text-2xl sm:text-3xl">Everything from the menu bar</h2>
+      <p class="muted mx-auto mt-3 max-w-xl">
+        No Dock icon, no window. Start a session and it shows up in the menu — click it to
+        pause, stop, or dismiss. Your settings, presets and alarms sync via a simple export/import.
+      </p>
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <a href={SITE.releases} target="_blank" rel="noopener" class="btn btn-primary">Download the latest .dmg</a>
+        <a href={SITE.repo} target="_blank" rel="noopener" class="btn">View source on GitHub</a>
+      </div>
+    </div>
+  </section>
+</Base>

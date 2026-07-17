@@ -1,0 +1,15 @@
+{
+  "name": "Tomatick",
+  "short_name": "Tomatick",
+  "description": "A macOS menu bar timer, stopwatch, alarm & pomodoro.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#140f0e",
+  "theme_color": "#f5402a",
+  "icons": [
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

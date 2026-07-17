@@ -1,0 +1,51 @@
+---
+import { SITE, NAV } from '../consts';
+import TomatoLogo from './TomatoLogo.astro';
+import GitHubMark from './GitHubMark.astro';
+const year = new Date().getFullYear(); // rendered at build time — never stale
+---
+<footer class="mt-24 border-t" style="border-color: var(--border); background-color: var(--bg-elev);">
+  <div class="container-page py-12" style="padding-bottom: max(3rem, env(safe-area-inset-bottom));">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="lg:col-span-2">
+        <a href="/" class="flex items-center gap-2.5 font-display text-lg font-extrabold no-underline" style="color: var(--fg);">
+          <TomatoLogo class="h-8 w-8" />
+          Tomatick
+        </a>
+        <p class="muted mt-3 max-w-xs text-sm">{SITE.tagline} Open source, MIT.</p>
+        <a href={SITE.repo} target="_blank" rel="noopener" class="btn mt-4 !min-h-[40px] !px-4 !py-2" aria-label="Tomatick on GitHub">
+          <GitHubMark class="h-5 w-5" /> GitHub
+        </a>
+      </div>
+
+      <nav aria-label="Product">
+        <h2 class="font-display text-sm font-bold uppercase tracking-wider">Product</h2>
+        <ul class="mt-3 space-y-2 text-sm">
+          {NAV.product.map((i) => (
+            <li>
+              <a href={i.href} class="link-accent !font-normal !no-underline hover:!underline" {...(i.external ? { target: '_blank', rel: 'noopener' } : {})}>{i.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <nav aria-label="About">
+        <h2 class="font-display text-sm font-bold uppercase tracking-wider">About</h2>
+        <ul class="mt-3 space-y-2 text-sm">
+          {NAV.about.map((i) => (
+            <li>
+              <a href={i.href} class="link-accent !font-normal !no-underline hover:!underline" {...(i.external ? { target: '_blank', rel: 'noopener' } : {})}>{i.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+
+    <div class="mt-10 border-t pt-6 text-sm" style="border-color: var(--border);">
+      <!-- Exact TGWAB credit line. §1 (required) -->
+      <p class="muted">
+        © {year} | Created with ❤️ by <a href={SITE.authorUrl} target="_blank" rel="noopener" class="link-accent">Michal Ferber</a>, aka <a href={SITE.brandUrl} target="_blank" rel="noopener" class="link-accent">TechGuyWithABeard</a>.
+      </p>
+    </div>
+  </div>
+</footer>

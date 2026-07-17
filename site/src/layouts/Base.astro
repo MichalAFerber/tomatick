@@ -1,0 +1,29 @@
+---
+import '../styles/global.css';
+import Head from '../components/Head.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  path?: string;
+  schema?: 'WebApplication' | 'WebSite';
+  noindex?: boolean;
+}
+const { title, description, path, schema, noindex } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <Head title={title} description={description} path={path} schema={schema} noindex={noindex} />
+  </head>
+  <body class="flex min-h-[100dvh] flex-col">
+    <a href="#main" class="skip-link">Skip to content</a>
+    <Header />
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

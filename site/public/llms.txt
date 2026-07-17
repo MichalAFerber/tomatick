@@ -1,0 +1,17 @@
+# Tomatick
+
+> Tomatick is a free, open-source macOS menu bar app that combines a timer,
+> stopwatch, alarm and pomodoro in a single menu bar icon, with a timestamped
+> history of every session. It runs entirely on the user's Mac — no accounts,
+> no uploads, no server-side processing. Distributed under the MIT license.
+
+## Docs
+- [Quick Start](https://tomatick.us/docs/): install and use every feature — timer, stopwatch, pomodoro, alarms, presets, hotkey, Focus/DND, settings sync.
+
+## Source & downloads
+- [GitHub repository](https://github.com/MichalAFerber/tomatick): source code (Python + rumps/PyObjC), issues, releases.
+- [Releases](https://github.com/MichalAFerber/tomatick/releases): download the latest signed-by-you `.dmg` (Apple Silicon).
+
+## Policies
+- [Privacy Policy](https://tomatick.us/privacy/): local-only data; cookieless, self-hosted Plausible analytics on the site.
+- [Terms of Use](https://tomatick.us/terms/): MIT license terms; provided as-is.

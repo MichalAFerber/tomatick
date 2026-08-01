@@ -21,7 +21,9 @@ const {
 
 const canonical = new URL(path, SITE.url).href;
 const ogImage = new URL(SITE.ogImage, SITE.url).href;
-const fullTitle = title === SITE.name ? title : `${title} · ${SITE.name}`;
+// Suffix the brand only when the title does not already carry it. An exact-match
+// guard let "Tomatick — …" through and rendered "Tomatick — … · Tomatick".
+const fullTitle = title.includes(SITE.name) ? title : `${title} · ${SITE.name}`;
 
 const jsonLd =
   schema === 'WebApplication'

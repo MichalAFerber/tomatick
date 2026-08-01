@@ -5,8 +5,8 @@ export const SITE = {
   url: 'https://tomatick.us',
   tagline: 'A macOS menu bar timer, stopwatch, alarm & pomodoro.',
   description:
-    'Tomatick is a macOS menu bar timer, stopwatch, alarm and pomodoro — all in one icon, ' +
-    'with a timestamped history of everything you run. Open source, MIT, no tracking that leaves your Mac.',
+    'A macOS menu bar timer, stopwatch, alarm and pomodoro in one icon, with a timestamped ' +
+    'history of every run. Open source, MIT, no tracking.',
   repo: 'https://github.com/MichalAFerber/tomatick',
   releases: 'https://github.com/MichalAFerber/tomatick/releases',
   author: 'Michal Ferber',

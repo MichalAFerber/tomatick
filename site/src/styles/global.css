@@ -145,6 +145,30 @@
     background-color: var(--bg-elev);
     border: 1px solid var(--border);
   }
+  /* Contact form controls. Written here rather than as utilities on the elements
+     because every other component in this site takes its colours from the CSS
+     variables through a semantic class, and a form that reached for arbitrary
+     Tailwind colours would not follow the theme toggle. */
+  .field {
+    @apply block text-sm;
+  }
+  .field > span {
+    @apply mb-1 block font-semibold;
+    color: var(--fg);
+  }
+  .field input,
+  .field textarea {
+    @apply w-full rounded-xl px-3 py-2.5 text-base;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+  .field input:focus-visible,
+  .field textarea:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
   .badge {
     @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold;
     background-color: var(--bg-tint);

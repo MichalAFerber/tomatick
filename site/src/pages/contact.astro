@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { SITE, SUPPORT_EMAIL, MAILER_PRODUCT } from '../consts';
+---
+
+<Base
+  title="Contact"
+  description={`Get in touch about ${SITE.name} — questions, bugs and feature requests.`}
+  path="/contact/"
+>
+  <div class="container-page py-12 sm:py-16">
+    <div class="doc">
+      <h1>Contact</h1>
+      <p class="muted">
+        Questions, bug reports and feature requests all land in the same inbox. We usually reply
+        within 24–48 hours.
+      </p>
+
+      <p>
+        {SITE.name} runs entirely on your Mac, so a bug report is far easier to act on with the
+        details: your macOS version, the {SITE.name} version from the menu bar, and what you were
+        doing when it happened.
+      </p>
+
+      <ContactForm supportEmail={SUPPORT_EMAIL} product={MAILER_PRODUCT} />
+
+      <h2>Other ways to reach the project</h2>
+      <p>
+        Bugs and feature requests are also welcome as
+        <a class="link-accent" href={`${SITE.repo}/issues`} target="_blank" rel="noopener">GitHub issues</a>,
+        which is the better route if you want to track the outcome in public. The source is at
+        <a class="link-accent" href={SITE.repo} target="_blank" rel="noopener">{SITE.repo.replace('https://', '')}</a>.
+      </p>
+    </div>
+  </div>
+</Base>

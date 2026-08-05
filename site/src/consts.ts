@@ -18,6 +18,13 @@ export const SITE = {
   ogImage: '/og.png',
 } as const;
 
+// Contact routing. SUPPORT_EMAIL is what the page shows when the form is not
+// yet active; MAILER_PRODUCT is the herald registry slug the mailer keys its
+// per-product config on (from address, recipient, Origin allowlist, Turnstile
+// secret). Both must match the registry row for slug `tomatick_us`.
+export const SUPPORT_EMAIL = 'michal@tomatick.us';
+export const MAILER_PRODUCT = 'tomatick_us';
+
 // Product footer nav (§1 product-site footer variant).
 export const NAV = {
   product: [
@@ -26,6 +33,7 @@ export const NAV = {
     { label: 'Source', href: SITE.repo, external: true },
   ],
   about: [
+    { label: 'Contact', href: '/contact/' },
     { label: 'Privacy', href: '/privacy/' },
     { label: 'Terms', href: '/terms/' },
     { label: 'GitHub', href: SITE.repo, external: true },

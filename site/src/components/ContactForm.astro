@@ -1,0 +1,96 @@
+---
+// Contact form — the estate's standard shape (§6/§7), ported to this site's
+// design system: colours come from the CSS variables through semantic classes,
+// so the form follows the theme toggle like everything else here.
+//
+// It renders only when a Turnstile site key is present at build time
+// (PUBLIC_TURNSTILE_SITEKEY). Until then it shows a plain-text address and no
+// mailto: link — activation is a launch step, not a default.
+interface Props { supportEmail: string; product: string; }
+// `product` is the herald registry slug. It selects the mailer's per-product
+// config: from address, recipient, Origin allowlist and Turnstile secret.
+const { supportEmail, product } = Astro.props;
+const sitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY;
+---
+
+{sitekey ? (
+  <form id="contact-form" class="mt-6 space-y-4" novalidate>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="field">
+        <span>Name</span>
+        <input name="name" type="text" required maxlength="100" autocomplete="name" />
+      </label>
+      <label class="field">
+        <span>Email</span>
+        <input name="email" type="email" required maxlength="254" autocomplete="email" />
+      </label>
+    </div>
+    <label class="field">
+      <span>Subject</span>
+      <input name="subject" type="text" required maxlength="150" />
+    </label>
+    <label class="field">
+      <span>Message</span>
+      <textarea name="message" required maxlength="5000" rows="6"></textarea>
+    </label>
+
+    <div class="cf-turnstile" data-sitekey={sitekey} data-theme="auto"></div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="submit" class="btn btn-primary">Send message</button>
+      <p id="contact-status" role="status" aria-live="polite" class="muted text-sm"></p>
+    </div>
+    <noscript>
+      <p class="muted text-sm">
+        This form needs JavaScript enabled. You can reach us at <strong>{supportEmail}</strong>.
+      </p>
+    </noscript>
+
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer is:inline></script>
+    <script is:inline define:vars={{ supportEmail, product }}>
+      (() => {
+        const form = document.getElementById('contact-form');
+        if (!form) return;
+        const status = document.getElementById('contact-status');
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btn = form.querySelector('button[type=submit]');
+          const data = Object.fromEntries(new FormData(form).entries());
+          if (!data['cf-turnstile-response']) {
+            status.textContent = 'Please complete the verification challenge.';
+            return;
+          }
+          btn.disabled = true;
+          status.textContent = 'Sending…';
+          try {
+            const res = await fetch(`https://mailer.thompsonblack.us/contact/${product}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
+            });
+            // Parse defensively: an edge error (e.g. 502) returns an HTML page, not JSON.
+            let out = null;
+            try { out = await res.json(); } catch {}
+            if (res.ok && out && out.sent) {
+              form.reset();
+              if (window.turnstile) window.turnstile.reset();
+              status.textContent = "Thanks — your message is on its way. We'll reply within 24–48 hours.";
+            } else {
+              const detail = (out && out.error) || 'Something went wrong.';
+              status.textContent = detail + ' (HTTP ' + res.status + ') — please email ' + supportEmail + '.';
+              btn.disabled = false;
+            }
+          } catch {
+            status.textContent = 'Network error — please email ' + supportEmail + '.';
+            btn.disabled = false;
+          }
+        });
+      })();
+    </script>
+  </form>
+) : (
+  <p class="surface muted mt-6 rounded-xl p-4 text-sm">
+    The contact form is being set up. In the meantime, reach us at <strong>{supportEmail}</strong> —
+    we typically respond within 24–48 hours.
+  </p>
+)}

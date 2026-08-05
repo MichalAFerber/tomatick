@@ -36,6 +36,5 @@ export const NAV = {
     { label: 'Contact', href: '/contact/' },
     { label: 'Privacy', href: '/privacy/' },
     { label: 'Terms', href: '/terms/' },
-    { label: 'GitHub', href: SITE.repo, external: true },
   ],
 } as const;

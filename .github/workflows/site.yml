@@ -4,8 +4,14 @@ on:
   push:
     branches: [main]
     paths: ['site/**', '.github/workflows/site.yml']
+  # Deliberately NOT paths-filtered, unlike push. "Build + headless CSP harness"
+  # is a required status check on main, and a required check that does not run is
+  # not a skipped check — it is a permanently blocked pull request, because the
+  # context the ruleset waits for never reports at all. With the filter here, any
+  # PR touching only the Python app could never merge. The filter belongs on push,
+  # where it decides whether the work is worth doing; the gate has to run every
+  # time. There is no deploy job here, so running it costs a build and a harness.
   pull_request:
-    paths: ['site/**', '.github/workflows/site.yml']
 
 permissions:
   contents: read

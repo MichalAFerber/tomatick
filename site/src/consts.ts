@@ -22,7 +22,7 @@ export const SITE = {
 // yet active; MAILER_PRODUCT is the herald registry slug the mailer keys its
 // per-product config on (from address, recipient, Origin allowlist, Turnstile
 // secret). Both must match the registry row for slug `tomatick_us`.
-export const SUPPORT_EMAIL = 'michal@tomatick.us';
+export const SUPPORT_EMAIL = 'support@tomatick.us';
 export const MAILER_PRODUCT = 'tomatick_us';
 
 // Product footer nav (§1 product-site footer variant).

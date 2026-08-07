@@ -26,8 +26,8 @@ const sitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY;
       </label>
     </div>
     <label class="field">
-      <span>Subject</span>
-      <input name="subject" type="text" required maxlength="150" />
+      <span>Subject <span class="muted font-normal">(optional)</span></span>
+      <input name="subject" type="text" maxlength="150" />
     </label>
     <label class="field">
       <span>Message</span>
@@ -40,6 +40,9 @@ const sitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY;
       <button type="submit" class="btn btn-primary">Send message</button>
       <p id="contact-status" role="status" aria-live="polite" class="muted text-sm"></p>
     </div>
+    <p class="muted text-xs">
+      Please don't send secrets or credentials. We aim to reply within a couple of business days.
+    </p>
     <noscript>
       <p class="muted text-sm">
         This form needs JavaScript enabled. You can reach us at <strong>{supportEmail}</strong>.
@@ -56,6 +59,10 @@ const sitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY;
           e.preventDefault();
           const btn = form.querySelector('button[type=submit]');
           const data = Object.fromEntries(new FormData(form).entries());
+          if (!data.name || !data.email || !data.message) {
+            status.textContent = 'Please fill in your name, email, and message.';
+            return;
+          }
           if (!data['cf-turnstile-response']) {
             status.textContent = 'Please complete the verification challenge.';
             return;
@@ -74,7 +81,7 @@ const sitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY;
             if (res.ok && out && out.sent) {
               form.reset();
               if (window.turnstile) window.turnstile.reset();
-              status.textContent = "Thanks — your message is on its way. We'll reply within 24–48 hours.";
+              status.textContent = "Thanks — your message is on its way. We'll be in touch.";
             } else {
               const detail = (out && out.error) || 'Something went wrong.';
               status.textContent = detail + ' (HTTP ' + res.status + ') — please email ' + supportEmail + '.';

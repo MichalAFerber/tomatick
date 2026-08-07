@@ -1,37 +1,54 @@
 ---
 import Base from '../layouts/Base.astro';
 import ContactForm from '../components/ContactForm.astro';
+import GitHubMark from '../components/GitHubMark.astro';
 import { SITE, SUPPORT_EMAIL, MAILER_PRODUCT } from '../consts';
 ---
 
 <Base
-  title="Contact"
-  description={`Get in touch about ${SITE.name} — questions, bugs and feature requests.`}
+  title="Support"
+  description={`Get help with ${SITE.name} — check the documentation, email ${SUPPORT_EMAIL}, or send a message. No ticket portal, no chatbot, just a human.`}
   path="/contact/"
 >
-  <div class="container-page py-12 sm:py-16">
-    <div class="doc">
-      <h1>Contact</h1>
-      <p class="muted">
-        Questions, bug reports and feature requests all land in the same inbox. We usually reply
-        within 24–48 hours.
-      </p>
+  <section class="container-page max-w-3xl py-14 sm:py-20">
+    <h1 class="text-4xl sm:text-5xl">Support</h1>
+    <p class="muted mt-4 text-lg">Need help? We're here to assist you.</p>
 
-      <p>
+    <div class="card mt-10">
+      <h2 class="text-xl">Before you write</h2>
+      <p class="muted mt-2 text-[15px] leading-relaxed">
+        Check the <a href="/docs/" class="link-accent">documentation</a>—most questions are answered
+        there. Prefer email? Write to <strong>{SUPPORT_EMAIL}</strong>—we typically respond within
+        24–48 hours.
+      </p>
+      <p class="muted mt-3 text-[15px] leading-relaxed">
         {SITE.name} runs entirely on your Mac, so a bug report is far easier to act on with the
         details: your macOS version, the {SITE.name} version from the menu bar, and what you were
         doing when it happened.
       </p>
-
-      <ContactForm supportEmail={SUPPORT_EMAIL} product={MAILER_PRODUCT} />
-
-      <h2>Other ways to reach the project</h2>
-      <p>
-        Bugs and feature requests are also welcome as
-        <a class="link-accent" href={`${SITE.repo}/issues`} target="_blank" rel="noopener">GitHub issues</a>,
-        which is the better route if you want to track the outcome in public. The source is at
-        <a class="link-accent" href={SITE.repo} target="_blank" rel="noopener">{SITE.repo.replace('https://', '')}</a>.
-      </p>
     </div>
-  </div>
+
+    <div class="card mt-6">
+      <h2 class="text-xl">Send a message</h2>
+      <p class="muted mt-2 text-[15px] leading-relaxed">
+        Fill this out and it lands in our inbox—protected by Cloudflare Turnstile, no account
+        required.
+      </p>
+      <ContactForm supportEmail={SUPPORT_EMAIL} product={MAILER_PRODUCT} />
+    </div>
+
+    <div class="card mt-12">
+      <h2 class="text-xl">Prefer GitHub?</h2>
+      <p class="muted mt-2 text-[15px] leading-relaxed">
+        {SITE.name} is MIT-licensed and developed in the open. Bugs and feature requests are also
+        welcome as <a class="link-accent" href={`${SITE.repo}/issues`} target="_blank" rel="noopener"
+          >GitHub issues</a
+        >, which is the better route if you want to track the outcome in public.
+      </p>
+      <a href={SITE.repo} target="_blank" rel="noopener" class="btn mt-4">
+        <GitHubMark class="h-4 w-4 shrink-0" />
+        {SITE.repo.replace('https://', '')}
+      </a>
+    </div>
+  </section>
 </Base>

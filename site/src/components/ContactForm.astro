@@ -78,10 +78,16 @@ const sitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY;
             } else {
               const detail = (out && out.error) || 'Something went wrong.';
               status.textContent = detail + ' (HTTP ' + res.status + ') — please email ' + supportEmail + '.';
+              // A Turnstile token is single-use. Without a reset here the retry resubmits the
+              // spent token and fails again for a different reason than the first time — the
+              // visitor sees two failures and concludes the form is broken. Resetting empties
+              // the field, so the guard above asks them to re-solve instead.
+              if (window.turnstile) window.turnstile.reset();
               btn.disabled = false;
             }
           } catch {
             status.textContent = 'Network error — please email ' + supportEmail + '.';
+            if (window.turnstile) window.turnstile.reset();
             btn.disabled = false;
           }
         });

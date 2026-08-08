@@ -15,7 +15,9 @@ function resolveChrome(): string | undefined {
   return undefined;
 }
 
-const PORT = 4321;
+// Overridable so the harness never reuses a foreign server (e.g. another
+// project's astro dev) that happens to hold the default port.
+const PORT = Number(process.env.PORT || 4321);
 
 export default defineConfig({
   testDir: './tests',

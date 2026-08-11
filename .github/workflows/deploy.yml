@@ -54,10 +54,46 @@ jobs:
           # No .nvmrc or engines field in this repo — pin explicitly rather than
           # let setup-node fail on a file that does not exist.
           node-version: '22'
+      # PUBLIC_TURNSTILE_SITEKEY is read by ContactForm.astro at BUILD time. Without
+      # it the component renders its plain-text fallback instead of the widget —
+      # silently, with a green build. Cloudflare Pages supplied this as a project
+      # env var when Pages built the site; moving the build into Actions (§4) left
+      # it behind, which is how tomatick.us/contact/ lost its form.
       - name: Build
         if: steps.gate.outputs.ok == 'true'
         working-directory: site
+        env:
+          PUBLIC_TURNSTILE_SITEKEY: ${{ secrets.PUBLIC_TURNSTILE_SITEKEY }}
         run: npm ci && npm run build
+
+      # A green build is not evidence the form shipped: the fallback path builds
+      # and deploys perfectly happily. Assert the OUTCOME, after the last step that
+      # can rebuild dist/ and immediately before deploy. Mirrors the guard
+      # wizard-web added on 2026-08-03 after all five wizard sites lost their form
+      # the same way.
+      #
+      # Only meaningful once the secret exists: without it the fallback is correct
+      # behaviour, not a fault, so this skips rather than lying.
+      - name: Preflight — the built contact page carries the Turnstile widget
+        if: steps.gate.outputs.ok == 'true'
+        env:
+          PUBLIC_TURNSTILE_SITEKEY: ${{ secrets.PUBLIC_TURNSTILE_SITEKEY }}
+        run: |
+          if [ -z "${PUBLIC_TURNSTILE_SITEKEY:-}" ]; then
+            echo "PUBLIC_TURNSTILE_SITEKEY not configured — fallback form is expected; skipping."
+            exit 0
+          fi
+          PAGE="site/dist/contact/index.html"
+          if [ ! -f "$PAGE" ]; then
+            echo "::error::$PAGE was not built — cannot verify the contact form."
+            exit 1
+          fi
+          if ! grep -q 'cf-turnstile' "$PAGE"; then
+            grep -o 'contact form is being set up' "$PAGE" | head -1
+            echo "::error::built the FALLBACK contact form: the site key did not reach the build, so the deployed form would 403 every submission. Refusing to deploy."
+            exit 1
+          fi
+          echo "$PAGE carries the Turnstile widget."
 
       - name: Deploy to Cloudflare Pages
         if: steps.gate.outputs.ok == 'true'

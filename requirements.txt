@@ -10,4 +10,4 @@ pytest>=9.1.1           # run the logic tests
 # pygments 2.9.0 — both carrying known CVEs. These pins raise the floor; they do
 # not change what a current install resolves to.
 setuptools>=83.0.0    # via py2app
-pygments>=2.20.0      # via pytest
+pygments>=2.21.0      # via pytest

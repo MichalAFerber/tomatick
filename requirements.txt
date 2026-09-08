@@ -3,7 +3,7 @@ rumps>=0.4.0          # menu bar app (pulls in pyobjc-framework-Cocoa)
 
 # Dev / packaging (macOS)
 py2app>=0.28          # build Tomatick.app
-pytest>=7.0           # run the logic tests
+pytest>=9.1.1           # run the logic tests
 
 # Transitive floors. py2app and pytest accept very old setuptools/pygments, and a
 # resolver taking the minimum satisfying version lands on setuptools 9.1.0 and

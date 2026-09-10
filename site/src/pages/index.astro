@@ -12,10 +12,10 @@ const features = [
   { icon: '🗂', title: 'Timestamped history', body: 'Every event logged to SQLite. Browse recent runs, export the full log to CSV or JSON.' },
 ];
 
-const badges = ['Open source', 'MIT licensed', 'No data leaves your Mac', 'Apple Silicon'];
+const badges = ['Open source', 'MIT licensed', 'No data leaves your Mac', 'Single Go binary'];
 ---
 <Base
-  title="Tomatick — macOS menu bar timer, stopwatch, alarm & pomodoro"
+  title="Tomatick — menu bar timer, stopwatch, alarm & pomodoro"
   path="/"
   schema="WebApplication"
 >
@@ -28,8 +28,9 @@ const badges = ['Open source', 'MIT licensed', 'No data leaves your Mac', 'Apple
         <span style="color: var(--accent);">Every timer you need.</span>
       </h1>
       <p class="muted mx-auto mt-5 max-w-xl text-lg sm:text-xl">
-        Tomatick is a macOS <strong>menu bar</strong> timer, stopwatch, alarm and
-        pomodoro — with a timestamped history of everything you run.
+        Tomatick is a <strong>menu bar</strong> timer, stopwatch, alarm and
+        pomodoro — with a timestamped history of everything you run. Rewritten
+        from the original Python app as a single Go binary.
       </p>
       <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
         <a href={SITE.releases} target="_blank" rel="noopener" class="btn btn-primary text-lg">↓ Download for macOS</a>
@@ -38,7 +39,7 @@ const badges = ['Open source', 'MIT licensed', 'No data leaves your Mac', 'Apple
       <ul class="mt-8 flex flex-wrap items-center justify-center gap-2.5" aria-label="Highlights">
         {badges.map((b) => <li class="badge">{b}</li>)}
       </ul>
-      <p class="muted mt-4 text-sm">Apple Silicon (M1–M4) · unsigned build, no Apple Developer Program needed.</p>
+      <p class="muted mt-4 text-sm">macOS, Apple Silicon (M1–M4) · unsigned build, no Apple Developer Program needed.</p>
     </div>
   </section>
 
@@ -65,7 +66,7 @@ const badges = ['Open source', 'MIT licensed', 'No data leaves your Mac', 'Apple
         pause, stop, or dismiss. Your settings, presets and alarms sync via a simple export/import.
       </p>
       <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <a href={SITE.releases} target="_blank" rel="noopener" class="btn btn-primary">Download the latest .dmg</a>
+        <a href={SITE.releases} target="_blank" rel="noopener" class="btn btn-primary">Download the latest release</a>
         <a href={SITE.repo} target="_blank" rel="noopener" class="btn">View source on GitHub</a>
       </div>
     </div>

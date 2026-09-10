@@ -9,5 +9,5 @@ pytest>=9.1.1           # run the logic tests
 # resolver taking the minimum satisfying version lands on setuptools 9.1.0 and
 # pygments 2.9.0 — both carrying known CVEs. These pins raise the floor; they do
 # not change what a current install resolves to.
-setuptools>=83.0.0    # via py2app
+setuptools>=84.0.0    # via py2app
 pygments>=2.21.0      # via pytest

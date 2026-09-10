@@ -57,6 +57,13 @@ updates:
     cooldown:
       default-days: 7
       semver-major-days: 14
+    # Tailwind 3 -> 4 is a breaking rewrite (new engine, CSS-first config).
+    # Treat it as scheduled work, not a Dependabot merge. Security updates for
+    # tailwindcss are UNAFFECTED by this ignore and will still open a PR.
+    ignore:
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+
     groups:
       npm-non-major:
         patterns: ["*"]

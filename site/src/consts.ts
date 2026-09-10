@@ -3,12 +3,15 @@ export const SITE = {
   name: 'Tomatick',
   domain: 'tomatick.us',
   url: 'https://tomatick.us',
-  tagline: 'A macOS menu bar timer, stopwatch, alarm & pomodoro.',
+  tagline: 'A menu bar timer, stopwatch, alarm & pomodoro — now a single Go binary.',
   description:
-    'A macOS menu bar timer, stopwatch, alarm and pomodoro in one icon, with a timestamped ' +
-    'history of every run. Open source, MIT, no tracking.',
-  repo: 'https://github.com/MichalAFerber/tomatick',
-  releases: 'https://github.com/MichalAFerber/tomatick/releases',
+    'A menu bar timer, stopwatch, alarm and pomodoro in one icon, with a timestamped ' +
+    'history of every run. Rewritten in Go as a single binary. Open source, MIT, no tracking.',
+  // The Go rewrite (tomatick2) is the current product and where releases ship from.
+  // This repo (tomatick) still hosts the site and the original macOS-only Python app.
+  repo: 'https://github.com/MichalAFerber/tomatick2',
+  releases: 'https://github.com/MichalAFerber/tomatick2/releases',
+  legacyRepo: 'https://github.com/MichalAFerber/tomatick',
   author: 'Michal Ferber',
   authorUrl: 'https://michalferber.dev/',
   brandUrl: 'https://techguywithabeard.com/',

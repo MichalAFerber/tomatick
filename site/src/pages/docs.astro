@@ -12,8 +12,10 @@ import { SITE } from '../consts';
     <div class="doc">
       <h1>Quick Start</h1>
       <p>
-        A macOS <strong>menu bar</strong> timer, stopwatch, alarm and pomodoro — all in one
-        icon, with a timestamped history of everything you run.
+        A <strong>menu bar</strong> timer, stopwatch, alarm and pomodoro — all in one
+        icon, with a timestamped history of everything you run. Rewritten from the
+        original <a href={SITE.legacyRepo} target="_blank" rel="noopener">Python app</a>
+        as a single Go binary.
       </p>
       <blockquote>
         <strong>Requirements:</strong> Apple Silicon Mac (M1/M2/M3/M4), a recent macOS. The
@@ -22,8 +24,8 @@ import { SITE } from '../consts';
 
       <h2>1. Install</h2>
       <ol>
-        <li>Download the latest <code>Tomatick-x.y.z.dmg</code> from the <a href={SITE.releases} target="_blank" rel="noopener">Releases</a> page.</li>
-        <li>Open the <code>.dmg</code> and drag <strong>Tomatick</strong> onto the <strong>Applications</strong> folder.</li>
+        <li>Download the latest <code>Tomatick-x.y.z-macos-arm64.zip</code> from the <a href={SITE.releases} target="_blank" rel="noopener">Releases</a> page.</li>
+        <li>Unzip it and drag <strong>Tomatick.app</strong> onto the <strong>Applications</strong> folder.</li>
         <li>
           <strong>First launch only:</strong> right-click <strong>Tomatick</strong> in Applications →
           <strong>Open</strong> → <strong>Open</strong>. (A plain double-click is blocked the first
